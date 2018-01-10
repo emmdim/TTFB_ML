@@ -2,7 +2,7 @@
 #fabfile.py
 #
 from __future__ import with_statement
-from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel
+from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, sudo
 from fabric.contrib import files
 from contextlib import contextmanager as _contextmanager
 
@@ -33,6 +33,11 @@ env.roledefs = {
 	'servers' : [ip for name,ip in servers.iteritems()]
 }
 
+env.sudo_prefix = "sudo "
+env.code_dir_clients = '/home/pirate/ttfb/TTFB_ML'
+env.virtualenv_clients = 'venv'
+env.activate_clients  ='. %(virtualenv_clients)s/bin/activate' % env
+
 PUB_KEY = "~/.ssh/manosupc.pub"
 
 @_contextmanager
@@ -40,6 +45,10 @@ def virtualenv():
 	with cd(env.virtualenv), prefix(env.activate), cd(env.code_dir):
 		yield
 
+@_contextmanager
+def virtualenv_clients():
+	with cd(env.virtualenv_clients), prefix(env.activate_clients), cd(env.code_dir_clients):
+		yield
 
 
 @task
@@ -54,6 +63,27 @@ def deploy_local():
 		with virtualenv():
 			local('pip install --upgrade pip')
 			local('pip install -r requirements.txt')
+
+@task
+@roles('clients')
+def deploy_clients():
+	#local('virtualenv venv')
+	with show('debug'):
+		# Create experiment directory if not exists
+		if (run("test -d %s" % '/home/pirate/ttfb', shell=False).return_code) == 1:
+			print 'Creating working directory'
+			run("mkdir %s" % '/home/pirate/ttfb', shell=False)
+		with cd('/home/pirate/ttfb'):
+			run("sudo pip install virtualenv", shell=False, )
+			if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
+				print 'Cloning repository'
+				run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
+		with cd(env.code_dir_clients):
+			if (run("test -d %s" % 'venv', shell=False).return_code) == 1:
+				print 'Creating Virtual Environment'
+				run("virtualenv venv", shell=False)
+		with virtualenv_clients():
+			run("which python", shell=False)
 
 @task
 @parallel
