@@ -32,8 +32,14 @@ for p in processes:
     #p.wait()
     #out1, err = p.stdout.read(),p.stderr.read()
     out1, err = p.communicate()
-    out = out1.split(',')[1]
-    code = out1.split(',')[2]
+    out1 = out1.split(',')
+    # Different implmentations of curl
+    if len(out1) == 3:
+        out = out1[1]
+        code = out1[2]
+    else:
+        out = out1.split(',')[0]
+        code = out1.split(',')[1]
     print "PID:{}\tTime:{}\tCode:{}\tProxy:{}".format(p.pid,out,code,PROXY)
 
 
