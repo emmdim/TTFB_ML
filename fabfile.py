@@ -32,9 +32,12 @@ env.roledefs = {
 	'clients' : [ip for name,ip in clients.iteritems()],
 	'servers' : [ip for name,ip in servers.iteritems()]
 }
+env.use_ssh_config = True
+env.ssh_config_path = "ssh_config"
+
 
 env.sudo_prefix = "sudo "
-env.code_dir_clients = '/home/pirate/ttfb/TTFB_ML'
+env.code_dir_clients = '/home/pirate/ttfb/TTFB_ML/clients'
 env.virtualenv_clients = 'venv'
 env.activate_clients  ='. %(virtualenv_clients)s/bin/activate' % env
 
@@ -66,7 +69,7 @@ def deploy_local():
 
 @task
 @roles('clients')
-def deploy_clients():
+def clients_deploy():
 	#local('virtualenv venv')
 	with show('debug'):
 		# Create experiment directory if not exists
@@ -79,11 +82,21 @@ def deploy_clients():
 				print 'Cloning repository'
 				run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
 		with cd(env.code_dir_clients):
+			run("git pull", shell=False)
 			if (run("test -d %s" % 'venv', shell=False).return_code) == 1:
 				print 'Creating Virtual Environment'
 				run("virtualenv venv", shell=False)
 		with virtualenv_clients():
+			run("pip install --upgrade pip", shell=False)
 			run("which python", shell=False)
+
+@task
+@parallel
+@roles('clients')
+def clients_pull():
+	with show('debug'):
+		with cd(env.code_dir_clients):
+			run("git pull", shell=False)
 
 @task
 @parallel

@@ -12,6 +12,8 @@ $pip install --upgrade pip
 $pip install -r requirements.txt 
 $fab deploy_local
 ```
+Copy your private key to the TTFB_ML folder name as `key`
+
 Install your public key to the servers and clients.
 In fabfile.py change:
 ```

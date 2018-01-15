@@ -1,0 +1,35 @@
+Host 10.228.205.132
+	User pirate
+	IdentityFile key
+
+Host 10.1.9.132
+	User pirate
+	IdentityFile key
+
+Host 10.1.10.25
+	User pirate
+	IdentityFile key
+
+Host 10.1.15.70
+	User pirate
+	IdentityFile key
+
+Host 10.139.40.142
+	User pirate
+	IdentityFile key
+
+Host 10.228.206.40
+	User pirate
+	IdentityFile key
+
+Host 10.138.85.130
+	User root
+	IdentityFile key
+
+Host 10.138.120.66
+	User root
+	IdentityFile key
+
+Host 10.138.77.2
+	User root
+	IdentityFile key
