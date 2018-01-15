@@ -2,7 +2,7 @@
 #fabfile.py
 #
 from __future__ import with_statement
-from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, sudo
+from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, sudo, settings
 from fabric.contrib import files
 from contextlib import contextmanager as _contextmanager
 
@@ -37,7 +37,7 @@ env.ssh_config_path = "ssh_config"
 
 
 env.sudo_prefix = "sudo "
-env.code_dir_clients = '/home/pirate/ttfb/TTFB_ML/clients'
+env.code_dir_clients = '/home/pirate/ttfb/TTFB_ML/clients/'
 env.virtualenv_clients = 'venv'
 env.activate_clients  ='. %(virtualenv_clients)s/bin/activate' % env
 
@@ -83,9 +83,12 @@ def clients_deploy():
 				run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
 		with cd(env.code_dir_clients):
 			run("git pull", shell=False)
-			if (run("test -d %s" % 'venv', shell=False).return_code) == 1:
-				print 'Creating Virtual Environment'
-				run("virtualenv venv", shell=False)
+			with settings(warn_only=True):
+				#run("test -d %s" % env.code_dir_clients+"venv1", shell=False)
+				print run("test -d %s" % 'venv', shell=False).return_code
+				if (run("test -d %s" % 'venv', shell=False).return_code) == 1:
+					print 'Creating Virtual Environment'
+					run("virtualenv venv", shell=False)
 		with virtualenv_clients():
 			run("pip install --upgrade pip", shell=False)
 			run("which python", shell=False)
@@ -102,7 +105,8 @@ def clients_pull():
 #@parallel
 @roles('clients')
 def clients_test():
-	run("requests.py", shell=False)
+	with virtualenv_clients():
+		run("python requests.py", shell=False)
 
 
 @task
