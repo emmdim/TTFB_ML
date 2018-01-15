@@ -38,8 +38,8 @@ for p in processes:
         out = out1[1]
         code = out1[2]
     else:
-        out = out1.split(',')[0]
-        code = out1.split(',')[1]
+        out = out1[0]
+        code = out1[1]
     print "PID:{}\tTime:{}\tCode:{}\tProxy:{}".format(p.pid,out,code,PROXY)
 
 
