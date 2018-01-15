@@ -99,10 +99,10 @@ def clients_pull():
 			run("git pull", shell=False)
 
 @task
-@parallel
-@roles('clients','servers')
-def test_clients():
-	run('date', shell=False)
+#@parallel
+@roles('clients')
+def clients_test():
+	run("requests.py", shell=False)
 
 
 @task
