@@ -14,7 +14,11 @@ TX_BYTES = '/sys/class/net/'+IFACE_OUT+'/statistics/tx_bytes'
 
 out,err = Popen(["pgrep", "-fn", '(squid)*/etc/squid3/squid.conf'],stdout=PIPE).communicate()
 SQUID_PID = out.strip()
-#SQUID_PID = "29264"
+#For older version of squid
+if not SQUID_PID:
+	SQUID_PID =Popen(["pgrep", "-fn", '(squid)*-D -sYC'],stdout=PIPE).communicate()
+	SQUID_PID = out.strip()
+
 #OPENVPN_PID = max(check_output(['pgrep','-f','openvpn']).strip().split())
 
 SQUID_CMD = ["top","-b", "-n", "1", "-p", SQUID_PID, "|", "tail", "-1", "|", "head", "-3"] 
