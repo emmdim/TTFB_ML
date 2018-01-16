@@ -154,7 +154,7 @@ def clients_test():
 
 
 @task
-@parallel
+#@parallel
 @roles('servers')
 def servers_test():
 	with cd(env.code_dir_servers):
