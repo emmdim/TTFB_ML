@@ -34,12 +34,15 @@ env.roledefs = {
 }
 env.use_ssh_config = True
 env.ssh_config_path = "ssh_config"
-
-
 env.sudo_prefix = "sudo "
+
 env.code_dir_clients = '/home/pirate/ttfb/TTFB_ML/clients/'
 env.virtualenv_clients = 'venv'
 env.activate_clients  ='. %(virtualenv_clients)s/bin/activate' % env
+
+env.code_dir_servers = '/root/ttfb/TTFB_ML/servers/'
+env.virtualenv_servers = 'venv'
+env.activate_servers  ='. %(virtualenv_servers)s/bin/activate' % env
 
 PUB_KEY = "~/.ssh/manosupc.pub"
 
@@ -51,6 +54,11 @@ def virtualenv():
 @_contextmanager
 def virtualenv_clients():
 	with cd(env.virtualenv_clients), prefix(env.activate_clients), cd(env.code_dir_clients):
+		yield
+
+@_contextmanager
+def virtualenv_servers():
+	with cd(env.virtualenv_servers), prefix(env.activate_servers), cd(env.code_dir_servers):
 		yield
 
 
@@ -93,6 +101,35 @@ def clients_deploy():
 			run("pip install --upgrade pip", shell=False)
 			run("which python", shell=False)
 
+
+@task
+@roles('servers')
+def servers_deploy():
+	#local('virtualenv venv')
+	with show('debug'):
+		# Create experiment directory if not exists
+		if (run("test -d %s" % '/root/ttfb', shell=False).return_code) == 1:
+			print 'Creating working directory'
+			run("mkdir %s" % '/root/ttfb', shell=False)
+		with cd('/root/ttfb'):
+			run("sudo pip install virtualenv", shell=False, )
+			if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
+				print 'Cloning repository'
+				run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
+		with cd(env.code_dir_servers):
+			run("git pull", shell=False)
+			with settings(warn_only=True):
+				#run("test -d %s" % env.code_dir_clients+"venv1", shell=False)
+				print run("test -d %s" % 'venv', shell=False).return_code
+				if (run("test -d %s" % 'venv', shell=False).return_code) == 1:
+					print 'Creating Virtual Environment'
+					run("virtualenv venv", shell=False)
+		with virtualenv_servers():
+			run("pip install --upgrade pip", shell=False)
+			run("which python", shell=False)
+
+
+
 @task
 @parallel
 @roles('clients')
@@ -102,11 +139,18 @@ def clients_pull():
 			run("git pull", shell=False)
 
 @task
-#@parallel
 @roles('clients')
 def clients_test():
 	with virtualenv_clients():
 		run("python requests.py", shell=False)
+
+
+@task
+@parallel
+@roles('servers')
+def servers_test():
+	with virtualenv_servers():
+		run("python monitor.py", shell=False)
 
 
 @task
