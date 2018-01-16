@@ -37,11 +37,13 @@ def getNetCounters():
 
 def getCPU(pid):
 	p1 = Popen(["top","-b", "-n", "1", "-p", SQUID_PID], stdout=PIPE)
-	p2 = Popen(["tail", "-2"], stdin=p1.stdout, stdout=PIPE)
-	p3 = Popen(["head", "-1"], stdin=p2.stdout, stdout=PIPE)
+	p2 = Popen(["grep", SQUID_PID], stdin=p1.stdout, stdout=PIPE)
+	#p2 = Popen(["tail", "-2"], stdin=p1.stdout, stdout=PIPE)
+	#p3 = Popen(["head", "-1"], stdin=p2.stdout, stdout=PIPE)
 	p1.stdout.close()
-	p2.stdout.close()
-	output, err = p3.communicate()
+	#p2.stdout.close()
+	#output, err = p3.communicate()
+	output, err = p2.communicate()
 	return output.strip().split()[8]
 
 def getTotalCPU():
