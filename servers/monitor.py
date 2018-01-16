@@ -52,8 +52,12 @@ def getTotalCPU():
 	return total
 
 r_p, r_b, t_p,t_b = getNetCounters()
-with open(FILE,"wb") as outfile:
-	outfile.write("time,rx_packets,rx_bytes,tx_packets,tx_bytes,cpu\n")
+#with open(FILE,"wb") as outfile:
+#	outfile.write("time,rx_packets,rx_bytes,tx_packets,tx_bytes,cpu\n")
+outfile = open(FILE,"wb")
+outfile.write("time,rx_packets,rx_bytes,tx_packets,tx_bytes,cpu\n")
+outfile.close()
+
 t = 0
 START = time()
 
@@ -68,9 +72,11 @@ t_p = tx_p
 t_b = tx_b
 cpu = getTotalCPU()
 t = time()-START
-with open(FILE,"ab") as outfile:
-	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
-
+#with  open(FILE,"ab") as outfile:
+#	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+outfile = open(FILE,"ab")
+outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+outfile.close()
 if False:
 	while t < (EXP_TIME+15):
 		sleep(0.6855)
