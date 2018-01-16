@@ -16,7 +16,7 @@ out,err = Popen(["pgrep", "-fn", '(squid)*/etc/squid3/squid.conf'],stdout=PIPE).
 SQUID_PID = out.strip()
 #For older version of squid
 if not SQUID_PID:
-	SQUID_PID =Popen(["pgrep", "-fn", '(squid)*-D -sYC'],stdout=PIPE).communicate()
+	out, err =Popen(["pgrep", "-fn", '(squid)*-D -sYC'],stdout=PIPE).communicate()
 	SQUID_PID = out.strip()
 
 #OPENVPN_PID = max(check_output(['pgrep','-f','openvpn']).strip().split())
