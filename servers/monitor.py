@@ -20,7 +20,10 @@ SQUID_PID = out.strip()
 SQUID_CMD = ["top","-b", "-n", "1", "-p", SQUID_PID, "|", "tail", "-1", "|", "head", "-3"] 
 #OPENVPN_CMD = ["top","-b", "-n", "1", "-p", OPENVPN_PID, "|", "tail", "-1", "|", "head", "-3"]
 
-FILE = "load_exp_proxy"
+HOSTNAME = Popen(['hostname'], stdout=PIPE).communicate()[0].strip()
+
+FILE = "results_proxy_%s" % HOSTNAME
+
 def getCounter(counter):
 	out, err = Popen(['cat',counter],stdout=PIPE).communicate()
 	return out.strip()
@@ -55,18 +58,18 @@ t = 0
 START = time()
 
 rx_p, rx_b, tx_p, tx_b = getNetCounters()
-	r_p1 = rx_p - r_p
-	r_b1 = rx_b - r_b
-	t_p1 = tx_p - t_p
-	t_b1 = tx_b - t_b
-	r_p = rx_p
-	r_b = rx_b
-	t_p = tx_p
-	t_b = tx_b
-	cpu = getTotalCPU()
-	t = time()-START
-	with open(FILE,"ab") as outfile:
-		outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+r_p1 = rx_p - r_p
+r_b1 = rx_b - r_b
+t_p1 = tx_p - t_p
+t_b1 = tx_b - t_b
+r_p = rx_p
+r_b = rx_b
+t_p = tx_p
+t_b = tx_b
+cpu = getTotalCPU()
+t = time()-START
+with open(FILE,"ab") as outfile:
+	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
 
 if False:
 	while t < (EXP_TIME+15):

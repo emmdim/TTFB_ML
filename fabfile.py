@@ -140,7 +140,7 @@ def clients_pull():
 
 @task
 @parallel
-@roles('clients')
+@roles('servers')
 def servers_pull():
 	with show('debug'):
 		with cd('/root/ttfb/TTFB_ML'):
@@ -159,6 +159,7 @@ def clients_test():
 def servers_test():
 	with cd(env.code_dir_servers):
 		run("python monitor.py", shell=False)
+		run("cat results_proxy_*", shell=False)
 
 
 @task
@@ -174,12 +175,6 @@ def upload_pubkey_clients(pubkey_file=PUB_KEY):
 		with open(os.path.expanduser(pubkey_file)) as fd:
 			ssh_key = fd.readline().strip()
 			files.append('/home/pirate/.ssh/authorized_keys', ssh_key, shell=False)
-
-@task
-@parallel
-@roles('servers')
-def test_servers():
-	run('date', shell=False)
 
 @task
 @parallel
