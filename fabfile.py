@@ -85,7 +85,7 @@ def clients_deploy():
 			print 'Creating working directory'
 			run("mkdir %s" % '/home/pirate/ttfb', shell=False)
 		with cd('/home/pirate/ttfb'):
-			run("sudo pip install virtualenv", shell=False, )
+			run("sudo pip install virtualenv", shell=False)
 			if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
 				print 'Cloning repository'
 				run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
@@ -105,28 +105,28 @@ def clients_deploy():
 @task
 @roles('servers')
 def servers_deploy():
-	#local('virtualenv venv')
+	#Skipping virtualenv because of complication from different server OS versios etc.
 	with show('debug'):
 		# Create experiment directory if not exists
-		if (run("test -d %s" % '/root/ttfb', shell=False).return_code) == 1:
-			print 'Creating working directory'
-			run("mkdir %s" % '/root/ttfb', shell=False)
+		run('apt-get update', shell=False)
+		# Because of error that curl was not installed when cloning
+		run('apt-get install -y curl', shell=False)
+		# Because of confusion between git and git-fm for olde debian versions
+		run('apt-get install -y git-core', shell=False)
+		with settings(warn_only=True):
+			if (run("test -d %s" % '/root/ttfb', shell=False).return_code) == 1:
+				print 'Creating working directory'
+				run("mkdir %s" % '/root/ttfb', shell=False)
 		with cd('/root/ttfb'):
-			run("sudo pip install virtualenv", shell=False, )
-			if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
-				print 'Cloning repository'
-				run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
-		with cd(env.code_dir_servers):
-			run("git pull", shell=False)
 			with settings(warn_only=True):
-				#run("test -d %s" % env.code_dir_clients+"venv1", shell=False)
-				print run("test -d %s" % 'venv', shell=False).return_code
-				if (run("test -d %s" % 'venv', shell=False).return_code) == 1:
-					print 'Creating Virtual Environment'
-					run("virtualenv venv", shell=False)
-		with virtualenv_servers():
-			run("pip install --upgrade pip", shell=False)
-			run("which python", shell=False)
+				if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
+					print 'Cloning repository'
+					#Using git in the url since HTTP does not work for older versions of git
+					run("git clone git://github.com/emmdim/TTFB_ML.git", shell=False)
+		#Not using env.code_dir_clients cause olde git versions do not pull when in subfolder
+		with cd('/root/ttfb/TTFB_ML'):
+			run("git pull", shell=False)
+			run("ls", shell=False)
 
 
 
@@ -136,6 +136,14 @@ def servers_deploy():
 def clients_pull():
 	with show('debug'):
 		with cd(env.code_dir_clients):
+			run("git pull", shell=False)
+
+@task
+@parallel
+@roles('clients')
+def servers_pull():
+	with show('debug'):
+		with cd('/root/ttfb/TTFB_ML'):
 			run("git pull", shell=False)
 
 @task
@@ -149,7 +157,7 @@ def clients_test():
 @parallel
 @roles('servers')
 def servers_test():
-	with virtualenv_servers():
+	with cd(env.code_dir_servers):
 		run("python monitor.py", shell=False)
 
 
