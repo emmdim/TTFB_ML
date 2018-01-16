@@ -91,6 +91,6 @@ if False:
 		t_b = tx_b
 		cpu = getTotalCPU()
 		t = time()-START
-		with open(FILE,"ab") as outfile:
-			outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+		#with open(FILE,"ab") as outfile:
+		#	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
 
