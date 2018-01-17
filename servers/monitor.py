@@ -81,7 +81,8 @@ t = time()-START
 #with  open(FILE,"ab") as outfile:
 #	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
 outfile = open(FILE,"ab")
-outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+#outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+outfile.write("%.1f,%s,%s,%s,%s,%.1f \n" % (t,r_p1, r_b1, t_p1, t_b1,cpu))
 outfile.close()
 if False:
 	while t < (EXP_TIME+15):
