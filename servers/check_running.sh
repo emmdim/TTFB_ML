@@ -7,3 +7,4 @@ then
 	echo "Running"
 else
 	echo "Stopped"
+fi
