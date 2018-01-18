@@ -1,12 +1,14 @@
 import os
 from time import sleep,time
 from subprocess import Popen, PIPE
+import sys
 
 
 EXP_TIME = 16*60
 
-IFACE_IN = "eth0"
-IFACE_OUT = "eth0"
+IFACE_IN = sys.argv[1]
+#Assuming both Ifaces are the same
+IFACE_OUT = IFACE_IN
 RX_PCKS = '/sys/class/net/'+IFACE_IN+'/statistics/rx_packets'
 RX_BYTES = '/sys/class/net/'+IFACE_IN+'/statistics/rx_bytes'
 TX_PCKS = '/sys/class/net/'+IFACE_OUT+'/statistics/tx_packets'

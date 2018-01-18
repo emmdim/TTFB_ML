@@ -22,6 +22,13 @@ servers = {
  
 }
 
+servers_ifaces = {
+	'10.138.85.130' : 'eth0',
+	'10.138.120.66' : 'eth0',
+	'10.138.77.2' : 'eth3'
+
+}
+
 import os
 
 env.shell = "/bin/bash"
@@ -154,11 +161,12 @@ def clients_test():
 
 
 @task
-#@parallel
+@parallel
 @roles('servers')
 def servers_test():
+	print env.host
 	with cd(env.code_dir_servers):
-		run("python monitor.py", shell=False)
+		run("python monitor.py {}".format(servers_ifaces[env.host]), shell=False)
 		run("cat results_proxy_*", shell=False)
 
 
