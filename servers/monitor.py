@@ -54,7 +54,12 @@ def getTotalCPU():
 	squid_cpu = getCPU(SQUID_PID)
 	#openvpn_cpu = getCPU(OPENVPN_PID)
 	#total = float(openvpn_cpu)+float(squid_cpu)
-	total = float(squid_cpu)
+	try :
+		total = float(squid_cpu)
+	except ValueError:
+		# For some reason (probably locale) fabric shell uses top that produces
+		# floats with commas instead of periods in one of the servers
+		total = '.'.join(squid_cpu.split(','))
 	return total
 
 r_p, r_b, t_p,t_b = getNetCounters()
@@ -82,6 +87,7 @@ t = time()-START
 #	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
 outfile = open(FILE,"ab")
 #outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+#Changed to support Python 2.4
 outfile.write("%.1f,%s,%s,%s,%s,%.1f \n" % (t,r_p1, r_b1, t_p1, t_b1,cpu))
 outfile.close()
 if False:
