@@ -59,7 +59,7 @@ def getTotalCPU():
 	except ValueError:
 		# For some reason (probably locale) fabric shell uses top that produces
 		# floats with commas instead of periods in one of the servers
-		total = '.'.join(squid_cpu.split(','))
+		total = float('.'.join(squid_cpu.split(',')))
 	return total
 
 r_p, r_b, t_p,t_b = getNetCounters()
