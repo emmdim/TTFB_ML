@@ -1,3 +1,19 @@
+Host 10.228.207.65
+	User khulan
+	IdentityFile key
+
+Host 10.228.207.66
+	User khulan
+	IdentityFile key
+
+Host 10.139.40.87
+	User khulan
+	IdentityFile key
+
+Host 10.139.94.108
+	User khulan
+	IdentityFile key
+
 Host 10.228.205.132
 	User pirate
 	IdentityFile key
