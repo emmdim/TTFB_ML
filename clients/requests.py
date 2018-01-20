@@ -108,7 +108,7 @@ def restart(real_timestamp, local_timestamp):
 if __name__ == '__main__':
     real_timestamp = datetime.datetime.fromtimestamp(getEET())
     local_timestamp = datetime.datetime.now()
-    if len(sys.argv == 2):
+    if len(sys.argv) == 2:
         if sys.argv[1] == "start":
             boostrap(real_timestamp, local_timestamp)
         elif sys.argv[1] == "restart":
