@@ -2,17 +2,15 @@
 #fabfile.py
 #
 from __future__ import with_statement
-from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, sudo, settings
-from fabric.contrib import files
+from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings
 from contextlib import contextmanager as _contextmanager
 
 
-clients = {'SEG_1':'pirate@10.228.205.132',
-#'SEG_2':'10.1.9.132',
-#'SEG_3':'10.1.10.25',
-'SEG_6':'pirate@10.1.15.70',
-#'SEG_7':'10.139.40.142', #Not connecting
-#'SEG_10':'10.228.206.40' #Not connecting
+clients = {
+'SEG_1':'khulan@10.228.207.65',
+'SEG_2':'khulan@10.228.207.66',
+'SEG_3':'khulan@10.139.40.87',
+'SEG_4':'khulan@10.139.94.108',
 }
 
 servers = {
@@ -43,7 +41,7 @@ env.use_ssh_config = True
 env.ssh_config_path = "ssh_config"
 env.sudo_prefix = "sudo "
 
-env.code_dir_clients = '/home/pirate/ttfb/TTFB_ML/clients/'
+env.code_dir_clients = '/home/khulan/ttfb/TTFB_ML/clients/'
 env.virtualenv_clients = 'venv'
 env.activate_clients  ='. %(virtualenv_clients)s/bin/activate' % env
 
@@ -51,7 +49,7 @@ env.code_dir_servers = '/root/ttfb/TTFB_ML/servers/'
 env.virtualenv_servers = 'venv'
 env.activate_servers  ='. %(virtualenv_servers)s/bin/activate' % env
 
-PUB_KEY = "~/.ssh/manosupc.pub"
+PUB_KEY = "key.pub"
 
 @_contextmanager
 def virtualenv():
@@ -88,10 +86,10 @@ def clients_deploy():
 	#local('virtualenv venv')
 	with show('debug'):
 		# Create experiment directory if not exists
-		if (run("test -d %s" % '/home/pirate/ttfb', shell=False).return_code) == 1:
+		if (run("test -d %s" % '/home/khula/ttfb', shell=False).return_code) == 1:
 			print 'Creating working directory'
-			run("mkdir %s" % '/home/pirate/ttfb', shell=False)
-		with cd('/home/pirate/ttfb'):
+			run("mkdir %s" % '/home/khulan/ttfb', shell=False)
+		with cd('/home/khulan/ttfb'):
 			run("sudo pip install virtualenv", shell=False)
 			if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
 				print 'Cloning repository'
@@ -161,7 +159,7 @@ def clients_test():
 
 
 @task
-@parallel
+#@parallel
 @roles('servers')
 def servers_test():
 	print env.host
@@ -171,18 +169,28 @@ def servers_test():
 
 
 @task
-@parallel
+@roles('clients')
 def check_keys():
 	run('cat ~/.ssh/authorized_keys',shell=False)
 
 @task
-#@parallel
-#@roles('clients')
-def upload_pubkey_clients(pubkey_file=PUB_KEY):
+@roles('clients')
+def clients_upload_pubkey(pubkey_file=PUB_KEY):
 	with show('debug'):
-		with open(os.path.expanduser(pubkey_file)) as fd:
-			ssh_key = fd.readline().strip()
-			files.append('/home/pirate/.ssh/authorized_keys', ssh_key, shell=False)
+		with settings(use_ssh_config=False,user='khulan'):
+			with settings(warn_only=True):
+				if (run("test -d %s" % '/home/khulan/.ssh', shell=False).return_code) == 1:
+					print 'Creating .ssh directory'
+					run("mkdir %s" % '/home/khulan/.ssh', shell=False)
+				run("chmod 700 /home/khulan/.ssh", shell=False)
+				if (run("test -d %s" % '/home/khulan/.ssh/authorized_keys', shell=False).return_code) == 1:
+					print 'Creating authorized_keys'
+					run("touch %s" % '/home/khulan/.ssh/authorized_keys', shell=False)	
+				run("chmod 600 /home/khulan/.ssh/authorized_keys", shell=False)
+			with open(os.path.expanduser(pubkey_file)) as fd:
+				ssh_key = fd.readline().strip()
+				run("echo '%s' >> %s" % (ssh_key,'/home/khulan/.ssh/authorized_keys'), shell=False)
+				#files.append('/home/khulan/.ssh/authorized_keys', ssh_key, shell=False)
 
 @task
 @parallel
