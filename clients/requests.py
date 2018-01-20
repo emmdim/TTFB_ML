@@ -90,6 +90,7 @@ def run(real_timestamp, local_timestamp):
             ##  time.sleep(interval.total_seconds())
             last_real_now = real_now + (last_local_now - local_now)
             #Calculate interval based on that the last digit of seconds has to be zero
+            interval = 10 - (last_real_now.second % 10)
             time.sleep(interval)
 
 def boostrap(real_timestamp, local_timestamp):
