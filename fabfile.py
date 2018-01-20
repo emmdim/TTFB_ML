@@ -2,7 +2,7 @@
 #fabfile.py
 #
 from __future__ import with_statement
-from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings, sudo
+from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings, sudo, get
 from contextlib import contextmanager as _contextmanager
 
 
@@ -12,6 +12,7 @@ clients = {
 'SEG_3':'khulan@10.139.40.87',
 'SEG_4':'khulan@10.139.94.108',
 }
+client_hosts = [v.split('@')[1] for v in clients.values()]
 
 servers = {
 	'SERV1' : 'root@10.138.85.130',
@@ -19,6 +20,7 @@ servers = {
 	'SERV3' : 'root@10.138.77.2'
  
 }
+server_hosts = [v.split('@')[1] for v in servers.values()]
 
 servers_ifaces = {
 	'10.138.85.130' : 'eth0',
@@ -216,9 +218,16 @@ def check_experiment():
 	pass
 
 @task
-@parallel
 @roles('clients','servers')
 def get_results():
-	pass
-
+	if env.host in client_hosts:
+		with cd(env.code_dir_clients):
+			with settings(warn_only=True):
+				get('results/results*','clients/results/')
+	elif env.host in server_hosts:
+		with cd(env.code_dir_servers):
+			with settings(warn_only=True):
+				get('results/results*','servers/results/')
+	else:
+		print 'Nothing'
 
