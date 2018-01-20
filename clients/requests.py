@@ -42,7 +42,7 @@ LOG_FILE = "results/log_client_%s" % HOSTNAME
 
 def get_cmd(proxy):
         cmd='curl -x '+proxy+':3128 -U '+USER+':\"'+PASS+'\" -m 180 -w \"%{time_total},%{http_code},%{time_starttransfer}\" -H \"Cache-control: private\" '+URL+' -o /dev/null -s'
-        print cmd
+        #print cmd
         return cmd
 
 def timestamp2str(timestamp):
@@ -64,10 +64,8 @@ def run(real_timestamp, local_timestamp):
     for rep in range(0,3):
         local_now = datetime.datetime.now()
         real_now = real_timestamp + (local_now - local_timestamp)
-        processes = {(i,Popen(shlex.split(get_cmd(proxy)), stdout=PIPE, stderr=PIPE)) for i,proxy in PROXIES.iteritems()}
-        for i,p in processes.iteritems(): 
-            #p.wait()
-            #out1, err = p.stdout.read(),p.stderr.read()
+        processes = {proxy:Popen(shlex.split(get_cmd(proxy)), stdout=PIPE, stderr=PIPE) for i,proxy in PROXIES.iteritems()}
+        for proxy,p in processes.iteritems(): 
             out1, err = p.communicate()
             out1 = out1.split(',')
             # Different implmentations of curl
@@ -79,9 +77,9 @@ def run(real_timestamp, local_timestamp):
                 total = out1[0]
                 code = out1[1]
                 ttfb = out1[2]
-            print "PID:{}\t\tTimestamp:{}\tTotalTime:{}\tTTFB:{}\tCode:{}\tProxy:{}".format(p.pid,timestamp2str(real_now),ttfb,code,PROXIES[i])
+            print "PID:{}\tTimestamp:{}\tTotalTime:{}\tTTFB:{}\tCode:{}\tProxy:{}".format(p.pid,timestamp2str(real_now),total,ttfb,code,proxy)
             with open(RESULT_FILE,"a") as fil:
-                fil.write("{},{},{},{},{}\n".format(real_now, PROXIES[i], ttfb, total, code))
+                fil.write("{},{},{},{},{}\n".format(real_now, proxy, ttfb, total, code))
             # Find how many seconds are left to sleep, if any, and sleep
             last_local_now = datetime.datetime.now()
             interval = (local_now + datetime.timedelta(seconds=10)) - last_local_now
