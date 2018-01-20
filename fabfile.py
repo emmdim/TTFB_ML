@@ -2,7 +2,7 @@
 #fabfile.py
 #
 from __future__ import with_statement
-from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings
+from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings, sudo
 from contextlib import contextmanager as _contextmanager
 
 
@@ -86,19 +86,23 @@ def clients_deploy():
 	#local('virtualenv venv')
 	with show('debug'):
 		# Create experiment directory if not exists
-		if (run("test -d %s" % '/home/khula/ttfb', shell=False).return_code) == 1:
-			print 'Creating working directory'
-			run("mkdir %s" % '/home/khulan/ttfb', shell=False)
+		sudo('apt-get update', shell=False)
+		# Because of error that curl was not installed when cloning
+		sudo('apt-get install -y curl python-pip git', shell=False)
+		# Create experiment directory if not exists
+		with settings(warn_only=True):
+			if (run("test -d %s" % '/home/khulan/ttfb', shell=False).return_code) == 1:
+				print 'Creating working directory'
+				run("mkdir %s" % '/home/khulan/ttfb', shell=False)
 		with cd('/home/khulan/ttfb'):
 			run("sudo pip install virtualenv", shell=False)
-			if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
-				print 'Cloning repository'
-				run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
+			with settings(warn_only=True):
+				if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
+					print 'Cloning repository'
+					run("git clone https://github.com/emmdim/TTFB_ML.git", shell=False)
 		with cd(env.code_dir_clients):
 			run("git pull", shell=False)
 			with settings(warn_only=True):
-				#run("test -d %s" % env.code_dir_clients+"venv1", shell=False)
-				print run("test -d %s" % 'venv', shell=False).return_code
 				if (run("test -d %s" % 'venv', shell=False).return_code) == 1:
 					print 'Creating Virtual Environment'
 					run("virtualenv venv", shell=False)
