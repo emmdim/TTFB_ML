@@ -18,7 +18,9 @@ from subprocess import PIPE, Popen
 import shlex
 import sys
 import datetime
-from ..getEET import getEET
+
+sys.path.append("../")
+from getEET import getEET
 
 USER = 'david.pinilla'
 PASS = r'|Jn 5DJ\\7inbNniK|m@^ja&>C'
@@ -35,8 +37,8 @@ URL = "http://ovh.net/files/1Mb.dat"
 INTERVAL = 10 # 10 Minutes
 
 HOSTNAME = Popen(['hostname'], stdout=PIPE).communicate()[0].strip()
-RESULT_FILE = "results_client_%s" % HOSTNAME
-LOG_FILE = "errors_client_%s" % HOSTNAME
+RESULT_FILE = "results/results_client_%s" % HOSTNAME
+LOG_FILE = "results/log_client_%s" % HOSTNAME
 
 def get_cmd(proxy):
         cmd='curl -x '+proxy+':3128 -U '+USER+':\"'+PASS+'\" -m 180 -w \"%{time_total},%{http_code},%{time_starttransfer}\" -H \"Cache-control: private\" '+URL+' -o /dev/null -s'
@@ -59,7 +61,7 @@ def run(real_timestamp, local_timestamp):
     ##proxy_id  = (real_timestamp.minute/10)  % 3
     ##proxy = PROXIES[proxy_id]
     ##while now < local_timestamp + datetime.timedelta(minutes = 10):
-    while True:
+    for rep in range(0,3):
         local_now = datetime.datetime.now()
         real_now = real_timestamp + (local_now - local_timestamp)
         processes = {(i,Popen(shlex.split(get_cmd(proxy)), stdout=PIPE, stderr=PIPE)) for i,proxy in PROXIES.iteritems()}
@@ -106,10 +108,11 @@ def restart(real_timestamp, local_timestamp):
 if __name__ == '__main__':
     real_timestamp = datetime.datetime.fromtimestamp(getEET())
     local_timestamp = datetime.datetime.now()
-    if sys.argv[1] == "start":
-        boostrap(real_timestamp, local_timestamp)
-    elif sys.argv[1] == "restart":
-        restart(real_timestamp, local_timestamp)
+    if len(sys.argv == 2):
+        if sys.argv[1] == "start":
+            boostrap(real_timestamp, local_timestamp)
+        elif sys.argv[1] == "restart":
+            restart(real_timestamp, local_timestamp)
     else:
         with open(LOG_FILE, "a") as fil:
             fil.write("{} : Command run without argument\n".format(timestamp2str(real_timestamp)))
