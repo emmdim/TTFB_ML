@@ -54,6 +54,8 @@ def timestamp2epoch(timestamp):
 def run(real_timestamp, local_timestamp):
     """ Makes every INTERVAL parallel http requests using all the 
         available proxies.
+        First measurement is in random timestamp. The rest happen
+        at every 0,10,20 etc. seconds
     """
     ## In case we want the proxy is selected depending on the 
     ##10ths of minutes of the time
@@ -82,9 +84,13 @@ def run(real_timestamp, local_timestamp):
                 fil.write("{},{},{},{},{}\n".format(real_now, proxy, ttfb, total, code))
             # Find how many seconds are left to sleep, if any, and sleep
             last_local_now = datetime.datetime.now()
-            interval = (local_now + datetime.timedelta(seconds=10)) - last_local_now
-            if interval.total_seconds() > 0:
-                time.sleep(interval.total_seconds())
+            ##Calculate interval without caring if seconds end in 0
+            ##interval = (local_now + datetime.timedelta(seconds=10)) - last_local_now
+            ##if interval.total_seconds() > 0:
+            ##  time.sleep(interval.total_seconds())
+            last_real_now = real_now + (last_local_now - local_now)
+            #Calculate interval based on that the last digit of seconds has to be zero
+            time.sleep(interval)
 
 def boostrap(real_timestamp, local_timestamp):
     """ Runs when the experiment is started """
