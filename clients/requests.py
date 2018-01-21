@@ -90,7 +90,8 @@ def run(real_timestamp, local_timestamp):
             ##  time.sleep(interval.total_seconds())
             last_real_now = real_now + (last_local_now - local_now)
             #Calculate interval based on that the last digit of seconds has to be zero
-            remaining_seconds = (((real_now.second / 10 ) + 1) % 6) * 10 - last_real_now.second
+            # Mod 5 leads to 60 seconds
+            remaining_seconds = (((real_now.second / 10 ) + 1) % 7) * 10 - last_real_now.second
             interval = remaining_seconds if remaining_seconds > 0 else 0
             #interval = (10 - (last_real_now.second % 10)) if last_real_now.second != 0 else 0
             time.sleep(interval)
