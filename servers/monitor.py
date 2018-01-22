@@ -52,7 +52,7 @@ def getNetCounters():
 	tx_b = int(getCounter(TX_BYTES))
 	return rx_p, rx_b, tx_p, tx_b
 
-def getCPUs(pid):
+def getCPU(pid):
 	p1 = Popen(["top","-b", "-n", "1", "-p", SQUID_PID], stdout=PIPE)
 	p2 = Popen(["grep", SQUID_PID], stdin=p1.stdout, stdout=PIPE)
 	p3 = Popen(["top", "-bn1"], stdout=PIPE)
