@@ -4,12 +4,8 @@ from subprocess import Popen, PIPE
 import sys
 import datetime
 
-
 sys.path.append("../")
 from getEET import getEET
-
-
-EXP_TIME = 16*60
 
 IFACE_IN = sys.argv[1]
 #Assuming both Ifaces are the same
@@ -128,11 +124,12 @@ def boostrap(real_timestamp, local_timestamp):
 if __name__ == '__main__':
     real_timestamp = datetime.datetime.fromtimestamp(getEET())
     local_timestamp = datetime.datetime.now()
-    if len(sys.argv) == 2:
-        if sys.argv[1] == "start":
+    if len(sys.argv) == 3:
+        if sys.argv[2] == "start":
             boostrap(real_timestamp, local_timestamp)
-        elif sys.argv[1] == "restart":
-            restart(real_timestamp, local_timestamp)
+        elif sys.argv[2] == "restart":
+            #restart(real_timestamp, local_timestamp)
+            pass
     else:
         outfile = open(LOG_FILE, "a")
         outfile.write("%s : Command run without argument\n" % timestamp2str(real_timestamp))
