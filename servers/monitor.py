@@ -97,6 +97,7 @@ def run(real_timestamp, local_timestamp, counters):
 		squidCPU,totalCPU = getTotalCPU()
 		outfile = open(RESULT_FILE,"ab")
 		#Changed to support Python 2.4
+		print("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
 		outfile.write("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
 		outfile.close()
 		# Update packet and byte counters
