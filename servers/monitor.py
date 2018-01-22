@@ -38,8 +38,13 @@ LOG_FILE = "results/log_proxy_%s" % HOSTNAME
 def timestamp2str(timestamp):
     return timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
+def timedelta_total_seconds(timedelta):
+    return (
+        timedelta.microseconds + 0.0 +
+        (timedelta.seconds + timedelta.days * 24 * 3600) * 10 ** 6) / 10 ** 6
+
 def timestamp2epoch(timestamp):
-    return (timestamp - datetime.datetime(1970,1,1)).total_seconds()
+    return timedelta_total_seconds(timestamp - datetime.datetime(1970,1,1))
 
 def getCounter(counter):
 	out, err = Popen(['cat',counter],stdout=PIPE).communicate()
