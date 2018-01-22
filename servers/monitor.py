@@ -88,7 +88,7 @@ def getTotalCPU():
 
 def run(real_timestamp, local_timestamp, counters):
 	r_p, r_b, t_p,t_b = counters
-	for rep in range(0,7):
+	while True:
 		local_now = datetime.datetime.now()
 		real_now = real_timestamp + (local_now - local_timestamp)
 		rx_p, rx_b, tx_p, tx_b = getNetCounters()
@@ -104,7 +104,7 @@ def run(real_timestamp, local_timestamp, counters):
 		outfile = open(RESULT_FILE,"ab")
 		#Changed to support Python 2.4
 		print("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
-		outfile.write("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
+		outfile.write("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2epoch(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
 		outfile.close()
 		# Update packet and byte counters
 		r_p, r_b, t_p,t_b = rx_p, rx_b, tx_p, tx_b

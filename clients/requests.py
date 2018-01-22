@@ -63,7 +63,7 @@ def run(real_timestamp, local_timestamp):
     ##proxy_id  = (real_timestamp.minute/10)  % 3
     ##proxy = PROXIES[proxy_id]
     ##while now < local_timestamp + datetime.timedelta(minutes = 10):
-    for rep in range(0,7):
+    while True:
         local_now = datetime.datetime.now()
         real_now = real_timestamp + (local_now - local_timestamp)
         processes = {proxy:Popen(shlex.split(get_cmd(proxy)), stdout=PIPE, stderr=PIPE) for i,proxy in PROXIES.iteritems()}
@@ -81,7 +81,7 @@ def run(real_timestamp, local_timestamp):
                 ttfb = out1[2]
             print "PID:{}\tTimestamp:{}\tTotalTime:{}\tTTFB:{}\tCode:{}\tProxy:{}".format(p.pid,timestamp2str(real_now),total,ttfb,code,proxy)
             with open(RESULT_FILE,"a") as fil:
-                fil.write("{},{},{},{},{}\n".format(real_now, proxy, ttfb, total, code))
+                fil.write("{},{},{},{},{}\n".format(timestamp2epoch(real_now), proxy, ttfb, total, code))
         # Find how many seconds are left to sleep, if any, and sleep
         last_local_now = datetime.datetime.now()
         ##Calculate interval without caring if seconds end in 0
