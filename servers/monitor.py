@@ -56,7 +56,7 @@ def getCPU(pid):
 	p1 = Popen(["top","-b", "-n", "1", "-p", SQUID_PID], stdout=PIPE)
 	p2 = Popen(["grep", SQUID_PID], stdin=p1.stdout, stdout=PIPE)
 	p3 = Popen(["top", "-bn1"], stdout=PIPE)
-	p4 = Popen(["awk","'NR>7{s+=$9} END {print s/4}'"], stdin=p3.stdout, stdout=PIPE)
+	p4 = Popen(["awk",'NR>7{s+=$9} END {print s/4}'], stdin=p3.stdout, stdout=PIPE)
 	#p2 = Popen(["tail", "-2"], stdin=p1.stdout, stdout=PIPE)
 	#p3 = Popen(["head", "-1"], stdin=p2.stdout, stdout=PIPE)
 	p1.stdout.close()
@@ -84,28 +84,28 @@ def run(real_timestamp, local_timestamp, counters):
 	r_p, r_b, t_p,t_b = counters
 	for rep in range(0,7):
 		local_now = datetime.datetime.now()
-        real_now = real_timestamp + (local_now - local_timestamp)
-        rx_p, rx_b, tx_p, tx_b = getNetCounters()
-        r_p1 = rx_p - r_p
-        r_b1 = rx_b - r_b
-        t_p1 = tx_p - t_p
-        t_b1 = tx_b - t_b
-        r_p = rx_p
-        r_b = rx_b
-        t_p = tx_p
-        t_b = tx_b
-        squidCPU,totalCPU = getTotalCPU()
-        outfile = open(RESULT_FILE,"ab")
-        #Changed to support Python 2.4
-        outfile.write("%.1f,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
-        outfile.close()
-        # Update packet and byte counters
-        r_p, r_b, t_p,t_b = rx_p, rx_b, tx_p, tx_b
-        # Find how many seconds are left to sleep, if any, and sleep
-        last_local_now = datetime.datetime.now()
-        last_real_now = real_now + (last_local_now - local_now)
-        if (last_real_now.second % 2) == 1:
-        	sleep(1)
+		real_now = real_timestamp + (local_now - local_timestamp)
+		rx_p, rx_b, tx_p, tx_b = getNetCounters()
+		r_p1 = rx_p - r_p
+		r_b1 = rx_b - r_b
+		t_p1 = tx_p - t_p
+		t_b1 = tx_b - t_b
+		r_p = rx_p
+		r_b = rx_b
+		t_p = tx_p
+		t_b = tx_b
+		squidCPU,totalCPU = getTotalCPU()
+		outfile = open(RESULT_FILE,"ab")
+		#Changed to support Python 2.4
+		outfile.write("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
+		outfile.close()
+		# Update packet and byte counters
+		r_p, r_b, t_p,t_b = rx_p, rx_b, tx_p, tx_b
+		# Find how many seconds are left to sleep, if any, and sleep
+		last_local_now = datetime.datetime.now()
+		last_real_now = real_now + (last_local_now - local_now)
+		if (last_real_now.second % 2) == 1:
+			sleep(1)
 
 
 def boostrap(real_timestamp, local_timestamp):
