@@ -69,7 +69,7 @@ def getCPU(pid):
 	return squidCPU, totalCPU
 
 def getTotalCPU():
-	squidCPU,totalCPU = getCPU(SQUID_PID)
+	squidCPU,total = getCPU(SQUID_PID)
 	#openvpn_cpu = getCPU(OPENVPN_PID)
 	#total = float(openvpn_cpu)+float(squid_cpu)
 	try :
@@ -78,7 +78,13 @@ def getTotalCPU():
 		# For some reason (probably locale) fabric shell uses top that produces
 		# floats with commas instead of periods in one of the servers
 		squidTotal = float('.'.join(squidCPU.split(',')))
-	return squidTotal, float(totalCPU)
+	try :
+		totalCPU = float(total)
+	except ValueError:
+		# For some reason (probably locale) fabric shell uses top that produces
+		# floats with commas instead of periods in one of the servers
+		totalCPU = float('.'.join(total.split(',')))
+	return squidTotal, totalCPU
 
 def run(real_timestamp, local_timestamp, counters):
 	r_p, r_b, t_p,t_b = counters
