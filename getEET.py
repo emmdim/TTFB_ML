@@ -1,5 +1,9 @@
 import urllib2
-import json
+import sys
+if sys.version_info[1] < 6:
+	import simplejson as json 
+else:
+	import json
 import random
 import time
 
@@ -7,7 +11,7 @@ TIMEOUT = 10
 TZDB_KEY = '459K79ZDCGC9'
 # 10 is chosen semi-arbitrarily, depending on the total number of nodes
 RETRIES = 10
-URL = 'http://api.timezonedb.com/v2/get-time-zone?format=json&format=json&by=zone&by=zone&zone=America/Chicago&zone=Europe/Madrid&key=%s' % TZDB_KEY
+URL = 'http://api.timezonedb.com/v2/get-time-zone?format=json&by=zone&by=zone&zone=Europe/Madrid&key=%s' % TZDB_KEY
 
 def getEET():
 	import socket
