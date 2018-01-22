@@ -106,6 +106,8 @@ def run(real_timestamp, local_timestamp, counters):
 		last_real_now = real_now + (last_local_now - local_now)
 		if (last_real_now.second % 2) == 1:
 			sleep(1)
+		else:
+			sleep(2)
 
 
 def boostrap(real_timestamp, local_timestamp):
