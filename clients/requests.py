@@ -91,8 +91,17 @@ def run(real_timestamp, local_timestamp):
             last_real_now = real_now + (last_local_now - local_now)
             #Calculate interval based on that the last digit of seconds has to be zero
             # Mod 5 leads to 60 seconds
-            remaining_seconds = (((real_now.second / 10 ) + 1) % 7) * 10 - last_real_now.second
+            if (real_now.second / 10) == (last_real_now.second / 10):
+                remaining_seconds = (((real_now.second / 10 ) + 1) % 7) * 10 - last_real_now.second
+            elif (real_now.second / 10) > (last_real_now.second / 10):
+                #Change of minute
+                remaining_seconds = 0
+            else:
+                #Change of 10th of second
+                remaining_seconds = 0
             interval = remaining_seconds if remaining_seconds > 0 else 0
+            with open(LOG_FILE,"a") as fil:
+                fil.write("Remaining Seconds: {} Interval:{}\n".format(remaining_seconds,interval))
             #interval = (10 - (last_real_now.second % 10)) if last_real_now.second != 0 else 0
             time.sleep(interval)
 
