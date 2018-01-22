@@ -2,6 +2,11 @@ import os
 from time import sleep,time
 from subprocess import Popen, PIPE
 import sys
+import datetime
+
+
+sys.path.append("../")
+from getEET import getEET
 
 
 EXP_TIME = 16*60
@@ -26,9 +31,19 @@ if not SQUID_PID:
 SQUID_CMD = ["top","-b", "-n", "1", "-p", SQUID_PID, "|", "tail", "-1", "|", "head", "-3"] 
 #OPENVPN_CMD = ["top","-b", "-n", "1", "-p", OPENVPN_PID, "|", "tail", "-1", "|", "head", "-3"]
 
+
+
 HOSTNAME = Popen(['hostname'], stdout=PIPE).communicate()[0].strip()
 
-FILE = "results_proxy_%s" % HOSTNAME
+RESULT_FILE = "results/results_proxy_%s" % HOSTNAME
+LOG_FILE = "results/log_proxy_%s" % HOSTNAME
+
+
+def timestamp2str(timestamp):
+    return timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+def timestamp2epoch(timestamp):
+    return (timestamp - datetime.datetime(1970,1,1)).total_seconds()
 
 def getCounter(counter):
 	out, err = Popen(['cat',counter],stdout=PIPE).communicate()
@@ -41,71 +56,85 @@ def getNetCounters():
 	tx_b = int(getCounter(TX_BYTES))
 	return rx_p, rx_b, tx_p, tx_b
 
-def getCPU(pid):
+def getCPUs(pid):
 	p1 = Popen(["top","-b", "-n", "1", "-p", SQUID_PID], stdout=PIPE)
 	p2 = Popen(["grep", SQUID_PID], stdin=p1.stdout, stdout=PIPE)
+	p3 = Popen(["top", "-bn1"], stdout=PIPE)
+	p4 = Popen(["awk","'NR>7{s+=$9} END {print s/4}'"], stdin=p3.stdout, stdout=PIPE)
 	#p2 = Popen(["tail", "-2"], stdin=p1.stdout, stdout=PIPE)
 	#p3 = Popen(["head", "-1"], stdin=p2.stdout, stdout=PIPE)
 	p1.stdout.close()
 	#p2.stdout.close()
 	#output, err = p3.communicate()
 	output, err = p2.communicate()
-	return output.strip().split()[8]
+	squidCPU = output.strip().split()[8]
+	output, err = p4.communicate()
+	totalCPU = output.strip()
+	return squidCPU, totalCPU
 
 def getTotalCPU():
-	squid_cpu = getCPU(SQUID_PID)
+	squidCPU,totalCPU = getCPU(SQUID_PID)
 	#openvpn_cpu = getCPU(OPENVPN_PID)
 	#total = float(openvpn_cpu)+float(squid_cpu)
 	try :
-		total = float(squid_cpu)
+		squidTotal = float(squidCPU)
 	except ValueError:
 		# For some reason (probably locale) fabric shell uses top that produces
 		# floats with commas instead of periods in one of the servers
-		total = float('.'.join(squid_cpu.split(',')))
-	return total
+		squidTotal = float('.'.join(squidCPU.split(',')))
+	return squidTotal, float(totalCPU)
 
-r_p, r_b, t_p,t_b = getNetCounters()
-#with open(FILE,"wb") as outfile:
-#	outfile.write("time,rx_packets,rx_bytes,tx_packets,tx_bytes,cpu\n")
-outfile = open(FILE,"wb")
-outfile.write("time,rx_packets,rx_bytes,tx_packets,tx_bytes,cpu\n")
-outfile.close()
+def run(real_timestamp, local_timestamp, counters):
+	r_p, r_b, t_p,t_b = counters
+	for rep in range(0,7):
+		local_now = datetime.datetime.now()
+        real_now = real_timestamp + (local_now - local_timestamp)
+        rx_p, rx_b, tx_p, tx_b = getNetCounters()
+        r_p1 = rx_p - r_p
+        r_b1 = rx_b - r_b
+        t_p1 = tx_p - t_p
+        t_b1 = tx_b - t_b
+        r_p = rx_p
+        r_b = rx_b
+        t_p = tx_p
+        t_b = tx_b
+        squidCPU,totalCPU = getTotalCPU()
+        outfile = open(RESULT_FILE,"ab")
+        #Changed to support Python 2.4
+        outfile.write("%.1f,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
+        outfile.close()
+        # Update packet and byte counters
+        r_p, r_b, t_p,t_b = rx_p, rx_b, tx_p, tx_b
+        # Find how many seconds are left to sleep, if any, and sleep
+        last_local_now = datetime.datetime.now()
+        last_real_now = real_now + (last_local_now - local_now)
+        if (last_real_now.second % 2) == 1:
+        	sleep(1)
 
-t = 0
-START = time()
 
-rx_p, rx_b, tx_p, tx_b = getNetCounters()
-r_p1 = rx_p - r_p
-r_b1 = rx_b - r_b
-t_p1 = tx_p - t_p
-t_b1 = tx_b - t_b
-r_p = rx_p
-r_b = rx_b
-t_p = tx_p
-t_b = tx_b
-cpu = getTotalCPU()
-t = time()-START
-#with  open(FILE,"ab") as outfile:
-#	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
-outfile = open(FILE,"ab")
-#outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
-#Changed to support Python 2.4
-outfile.write("%.1f,%s,%s,%s,%s,%.1f \n" % (t,r_p1, r_b1, t_p1, t_b1,cpu))
-outfile.close()
-if False:
-	while t < (EXP_TIME+15):
-		sleep(0.6855)
-		rx_p, rx_b, tx_p, tx_b = getNetCounters()
-		r_p1 = rx_p - r_p
-		r_b1 = rx_b - r_b
-		t_p1 = tx_p - t_p
-		t_b1 = tx_b - t_b
-		r_p = rx_p
-		r_b = rx_b
-		t_p = tx_p
-		t_b = tx_b
-		cpu = getTotalCPU()
-		t = time()-START
-		#with open(FILE,"ab") as outfile:
-		#	outfile.write("{0:.1f},{1},{2},{3},{4},{5:.1f}\n".format(t,r_p1, r_b1, t_p1, t_b1,cpu))
+def boostrap(real_timestamp, local_timestamp):
+    """ Runs when the experiment is started """
+    outfile = open(LOG_FILE,"w")
+    outfile.write("{%s : START Experiment starting\n" % timestamp2str(real_timestamp))
+    outfile.close()
+    outfile = open(RESULT_FILE,"w")
+    outfile.write("time,rx_packets,rx_bytes,tx_packets,tx_bytes,SquidCPU,TotalCPU\n")
+    outfile.close()
+    #r_p, r_b, t_p,t_b = getNetCounters()
+    counters = getNetCounters()
+    run(real_timestamp, local_timestamp, counters)
+
+
+if __name__ == '__main__':
+    real_timestamp = datetime.datetime.fromtimestamp(getEET())
+    local_timestamp = datetime.datetime.now()
+    if len(sys.argv) == 2:
+        if sys.argv[1] == "start":
+            boostrap(real_timestamp, local_timestamp)
+        elif sys.argv[1] == "restart":
+            restart(real_timestamp, local_timestamp)
+    else:
+        outfile = open(LOG_FILE, "a")
+        outfile.write("%s : Command run without argument\n" % timestamp2str(real_timestamp))
+        outfile.close()
 
