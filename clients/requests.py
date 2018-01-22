@@ -63,7 +63,7 @@ def run(real_timestamp, local_timestamp):
     ##proxy_id  = (real_timestamp.minute/10)  % 3
     ##proxy = PROXIES[proxy_id]
     ##while now < local_timestamp + datetime.timedelta(minutes = 10):
-    for rep in range(0,3):
+    for rep in range(0,7):
         local_now = datetime.datetime.now()
         real_now = real_timestamp + (local_now - local_timestamp)
         processes = {proxy:Popen(shlex.split(get_cmd(proxy)), stdout=PIPE, stderr=PIPE) for i,proxy in PROXIES.iteritems()}
@@ -90,7 +90,7 @@ def run(real_timestamp, local_timestamp):
             ##  time.sleep(interval.total_seconds())
             last_real_now = real_now + (last_local_now - local_now)
             #Calculate interval based on that the last digit of seconds has to be zero
-            # Mod 5 leads to 60 seconds
+            # Mod 7 leads to 60 seconds
             if (real_now.second / 10) == (last_real_now.second / 10):
                 remaining_seconds = (((real_now.second / 10 ) + 1) % 7) * 10 - last_real_now.second
             elif (real_now.second / 10) > (last_real_now.second / 10):
