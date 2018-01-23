@@ -100,8 +100,6 @@ def run(real_timestamp, local_timestamp):
             #Change of 10th of second
             remaining_seconds = 0
         interval = remaining_seconds if remaining_seconds > 0 else 0
-        with open(LOG_FILE,"a") as fil:
-            fil.write("Remaining Seconds: {} Interval:{}\n".format(remaining_seconds,interval))
         #interval = (10 - (last_real_now.second % 10)) if last_real_now.second != 0 else 0
         time.sleep(interval)
 
@@ -123,7 +121,7 @@ def restart(real_timestamp, local_timestamp):
     run(real_timestamp, local_timestamp)
 
 if __name__ == '__main__':
-    real_timestamp = datetime.datetime.fromtimestamp(getEET())
+    real_timestamp = datetime.datetime.utcfromtimestamp(getEET())
     local_timestamp = datetime.datetime.now()
     if len(sys.argv) == 2:
         if sys.argv[1] == "start":

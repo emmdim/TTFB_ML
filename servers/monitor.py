@@ -125,7 +125,7 @@ def run(real_timestamp, local_timestamp, counters):
 def boostrap(real_timestamp, local_timestamp):
     """ Runs when the experiment is started """
     outfile = open(LOG_FILE,"w")
-    outfile.write("{%s : START Experiment starting\n" % timestamp2str(real_timestamp))
+    outfile.write("%s : START Experiment starting\n" % timestamp2str(real_timestamp))
     outfile.close()
     outfile = open(RESULT_FILE,"w")
     outfile.write("time,rx_packets,rx_bytes,tx_packets,tx_bytes,SquidCPU,TotalCPU\n")
@@ -136,7 +136,7 @@ def boostrap(real_timestamp, local_timestamp):
 
 
 if __name__ == '__main__':
-    real_timestamp = datetime.datetime.fromtimestamp(getEET())
+    real_timestamp = datetime.datetime.utcfromtimestamp(getEET())
     local_timestamp = datetime.datetime.now()
     if len(sys.argv) == 3:
         if sys.argv[2] == "start":
