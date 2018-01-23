@@ -2,7 +2,7 @@
 #fabfile.py
 #
 from __future__ import with_statement
-from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings, sudo, get
+from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings, sudo, get, execute
 from contextlib import contextmanager as _contextmanager
 
 
@@ -90,7 +90,7 @@ def clients_deploy():
 		# Create experiment directory if not exists
 		sudo('apt-get update', shell=False)
 		# Because of error that curl was not installed when cloning
-		sudo('apt-get install -y curl python-pip git', shell=False)
+		sudo('apt-get install -y curl python-pip git screen', shell=False)
 		# Create experiment directory if not exists
 		with settings(warn_only=True):
 			if (run("test -d %s" % '/home/khulan/ttfb', shell=False).return_code) == 1:
@@ -123,7 +123,7 @@ def servers_deploy():
 		# Because of error that curl was not installed when cloning
 		run('apt-get install -y curl', shell=False)
 		# Because of confusion between git and git-fm for olde debian versions
-		run('apt-get install -y git-core', shell=False)
+		run('apt-get install -y git-core screen', shell=False)
 		with settings(warn_only=True):
 			if (run("test -d %s" % '/root/ttfb', shell=False).return_code) == 1:
 				print 'Creating working directory'
@@ -138,8 +138,6 @@ def servers_deploy():
 		with cd('/root/ttfb/TTFB_ML'):
 			run("git pull", shell=False)
 			run("ls", shell=False)
-
-
 
 @task
 @parallel
@@ -158,20 +156,20 @@ def servers_pull():
 			run("git pull", shell=False)
 
 @task
+@parallel
 @roles('clients')
 def clients_test():
 	with virtualenv_clients():
-		run("python requests.py", shell=False)
+		run("python requests.py start", shell=False)
 
 
 @task
-#@parallel
+@parallel
 @roles('servers')
 def servers_test():
 	print env.host
 	with cd(env.code_dir_servers):
-		run("python monitor.py {}".format(servers_ifaces[env.host]), shell=False)
-		run("cat results_proxy_*", shell=False)
+		run("python monitor.py {} start".format(servers_ifaces[env.host]), shell=False)
 
 
 @task
@@ -198,18 +196,27 @@ def clients_upload_pubkey(pubkey_file=PUB_KEY):
 				run("echo '%s' >> %s" % (ssh_key,'/home/khulan/.ssh/authorized_keys'), shell=False)
 				#files.append('/home/khulan/.ssh/authorized_keys', ssh_key, shell=False)
 
+def runbg(cmd):
+    return run("screen -dmS TTFB %s && sleep 1" % cmd, shell=False)
+
 @task
-@parallel
 @roles('clients','servers')
 def start_experiment():
-	run('date', shell=False)
+	if env.host in server_hosts:
+		with cd(env.code_dir_servers):
+			command = "python monitor.py {} start".format(servers_ifaces[env.host])
+			execute(runbg,command)
+	elif env.host in client_hosts:
+		with virtualenv_clients():
+			command = "python requests.py start"
+			execute(runbg,command)
 
 @task
-@parallel
+#@parallel
 @roles('clients','servers')
 def stop_experiment():
-	pass
-
+	with settings(warn_only=True):
+		run('screen -S TTFB -X quit', shell=False)
 
 @task
 @parallel
@@ -224,10 +231,12 @@ def get_results():
 		with cd(env.code_dir_clients):
 			with settings(warn_only=True):
 				get('results/results*','clients/results/')
+				get('results/log*','clients/results/')
 	elif env.host in server_hosts:
 		with cd(env.code_dir_servers):
 			with settings(warn_only=True):
 				get('results/results*','servers/results/')
+				get('results/log*','servers/results/')
 	else:
 		print 'Nothing'
 
