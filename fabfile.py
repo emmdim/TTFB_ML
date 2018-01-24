@@ -219,10 +219,10 @@ def stop_experiment():
 		run('screen -S TTFB -X quit', shell=False)
 
 @task
-@parallel
 @roles('clients','servers')
 def check_experiment():
-	pass
+	with settings(warn_only=True):
+		run('screen -ls', shell=False)
 
 @task
 @roles('clients','servers')
@@ -231,12 +231,23 @@ def get_results():
 		with cd(env.code_dir_clients):
 			with settings(warn_only=True):
 				get('results/results*','clients/results/')
-				get('results/log*','clients/results/')
 	elif env.host in server_hosts:
 		with cd(env.code_dir_servers):
 			with settings(warn_only=True):
 				get('results/results*','servers/results/')
-				get('results/log*','servers/results/')
 	else:
 		print 'Nothing'
 
+@task
+@roles('clients','servers')
+def get_logs():
+	if env.host in client_hosts:
+		with cd(env.code_dir_clients):
+			with settings(warn_only=True):
+				get('results/log*','clients/results/')
+	elif env.host in server_hosts:
+		with cd(env.code_dir_servers):
+			with settings(warn_only=True):
+				get('results/log*','servers/results/')
+	else:
+		print 'Nothing'
