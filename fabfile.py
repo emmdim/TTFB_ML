@@ -198,7 +198,7 @@ def clients_upload_pubkey(pubkey_file=PUB_KEY):
 				#files.append('/home/khulan/.ssh/authorized_keys', ssh_key, shell=False)
 
 def runbg(cmd):
-    run("screen -dmS TTFB echo Hi && sleep 1", shell=False)
+    run("screen -dmS TTFB && sleep 1", shell=False)
     run("screen -S TTFB -p 0 -X stuff \"%s\"$(echo -ne '\\015') && sleep 1" % cmd, shell=False)
 
 @task
