@@ -142,13 +142,14 @@ def restart(real_timestamp, local_timestamp):
     	infile.close()
     	last_time = datetime.datetime.fromtimestamp(last_time)
     	outfile = open(LOG_FILE, "a")
-    	outfile.write("{} : ERROR Experiment stopped at {}\n" % (timestamp2str(real_timestamp), timestamp2str(last_time)))
+    	outfile.write("%s : ERROR Experiment stopped at %s\n" % (timestamp2str(real_timestamp), timestamp2str(last_time)))
     	outfile.close()
     except Exception:
     	outfile = open(LOG_FILE, "a")
     	outfile.write("{} : ERROR Experiment stopped but couldn't find last measurement\n" % timestamp2str(real_timestamp))
     	outfile.close()
-    run(real_timestamp, local_timestamp)
+    counters = getNetCounters()
+    run(real_timestamp, local_timestamp, counters)
 
 if __name__ == '__main__':
     real_timestamp = datetime.datetime.utcfromtimestamp(getEET())
