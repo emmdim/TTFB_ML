@@ -11,7 +11,7 @@ if [[ $REQUESTS -eq 0 && $SCREEN -eq 0 ]]; then
 	echo "Running"
 elif [[ $SCREEN -ne 0 ]]; then
 	echo "Screen is not running"
-	echo screen -dmS TTFB python requests.py restart && sleep 1
+	screen -dmS TTFB python requests.py restart && sleep 1
 else
 	echo "Requests are not running"
 	screen -S TTFB -X stuff "python requests.py restart"$(echo -ne '\015')

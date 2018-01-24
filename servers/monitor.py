@@ -140,7 +140,7 @@ def restart(real_timestamp, local_timestamp):
     	infile = open(RESULT_FILE, "rb")
     	last_time = (list(infile)[-1]).split(',')[0]
     	infile.close()
-    	last_time = datetime.datetime.fromtimestamp(last_time)
+    	last_time = datetime.datetime.fromtimestamp(float(last_time))
     	outfile = open(LOG_FILE, "a")
     	outfile.write("%s : ERROR Experiment stopped at %s\n" % (timestamp2str(real_timestamp), timestamp2str(last_time)))
     	outfile.close()

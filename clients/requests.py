@@ -116,7 +116,7 @@ def restart(real_timestamp, local_timestamp):
     try:
         with open(RESULT_FILE, "rb") as fil:
             last_time = (list(fil)[-1]).split(',')[0]
-            last_time = datetime.datetime.fromtimestamp(last_time)
+            last_time = datetime.datetime.fromtimestamp(float(last_time))
             with open(LOG_FILE, "a") as fil1:
                 fil1.write("{} : ERROR Experiment stopped at {}\n".format(timestamp2str(real_timestamp), timestamp2str(last_time)))
     except Exception:
