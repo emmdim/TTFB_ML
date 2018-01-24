@@ -146,7 +146,7 @@ def restart(real_timestamp, local_timestamp):
     	outfile.close()
     except Exception:
     	outfile = open(LOG_FILE, "a")
-    	outfile.write("{} : ERROR Experiment stopped but couldn't find last measurement\n" % timestamp2str(real_timestamp))
+    	outfile.write("%s : ERROR Experiment stopped but couldn't find last measurement\n" % timestamp2str(real_timestamp))
     	outfile.close()
     counters = getNetCounters()
     run(real_timestamp, local_timestamp, counters)
