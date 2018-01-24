@@ -158,8 +158,7 @@ if __name__ == '__main__':
         if sys.argv[2] == "start":
             boostrap(real_timestamp, local_timestamp)
         elif sys.argv[2] == "restart":
-            #restart(real_timestamp, local_timestamp)
-            pass
+            restart(real_timestamp, local_timestamp)
     else:
         outfile = open(LOG_FILE, "a")
         outfile.write("%s : Command run without argument\n" % timestamp2str(real_timestamp))
