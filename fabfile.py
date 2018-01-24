@@ -4,6 +4,7 @@
 from __future__ import with_statement
 from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings, sudo, get, execute
 from contextlib import contextmanager as _contextmanager
+from time import sleep
 
 
 clients = {
@@ -197,7 +198,8 @@ def clients_upload_pubkey(pubkey_file=PUB_KEY):
 				#files.append('/home/khulan/.ssh/authorized_keys', ssh_key, shell=False)
 
 def runbg(cmd):
-    return run("screen -dmS TTFB %s && sleep 1" % cmd, shell=False)
+    run("screen -dmS TTFB echo Hi && sleep 1", shell=False)
+    run("screen -S TTFB -p 0 -X stuff \"%s\"$(echo -ne '\\015') && sleep 1" % cmd, shell=False)
 
 @task
 @roles('clients','servers')
