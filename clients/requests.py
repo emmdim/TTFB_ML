@@ -113,11 +113,15 @@ def boostrap(real_timestamp, local_timestamp):
 
 def restart(real_timestamp, local_timestamp):
     """" Runs when the experiment is detected as stopped"""
-    with open(RESULT_FILE, "rb") as fil:
-        last_time = (list(fil)[-1]).split(',')[0]
-        last_time = datetime.datetime.fromtimestamp(last_time)
-        with open(LOG_FILE, "a") as fil1:
-            fil1.write("{} : ERROR Experiment stopped at {}\n".format(timestamp2str(real_timestamp), timestamp2str(last_time)))
+    try:
+        with open(RESULT_FILE, "rb") as fil:
+            last_time = (list(fil)[-1]).split(',')[0]
+            last_time = datetime.datetime.fromtimestamp(last_time)
+            with open(LOG_FILE, "a") as fil1:
+                fil1.write("{} : ERROR Experiment stopped at {}\n".format(timestamp2str(real_timestamp), timestamp2str(last_time)))
+    except Exception:
+        with open(LOG_FILE, "a") as fil:
+            fil.write("{} : ERROR Experiment stopped but couldn't find last measurement\n".format(timestamp2str(real_timestamp)))
     run(real_timestamp, local_timestamp)
 
 if __name__ == '__main__':
