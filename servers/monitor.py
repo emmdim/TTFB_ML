@@ -137,18 +137,18 @@ def boostrap(real_timestamp, local_timestamp):
 def restart(real_timestamp, local_timestamp):
     """" Runs when the experiment is detected as stopped"""
     try:
-	    infile = open(RESULT_FILE, "rb")
-	    last_time = (list(infile)[-1]).split(',')[0]
-	    infile.close()
-	    last_time = datetime.datetime.fromtimestamp(last_time)
-	    outfile = open(LOG_FILE, "a")
-	    outfile.write("{} : ERROR Experiment stopped at {}\n" % (timestamp2str(real_timestamp), timestamp2str(last_time)))
-	    outfile.close()
-	except Exception:
-		outfile = open(LOG_FILE, "a")
-		outfile.write("{} : ERROR Experiment stopped but couldn't find last measurement\n" % timestamp2str(real_timestamp))
-		outfile.close()
-	run(real_timestamp, local_timestamp)
+    	infile = open(RESULT_FILE, "rb")
+    	last_time = (list(infile)[-1]).split(',')[0]
+    	infile.close()
+    	last_time = datetime.datetime.fromtimestamp(last_time)
+    	outfile = open(LOG_FILE, "a")
+    	outfile.write("{} : ERROR Experiment stopped at {}\n" % (timestamp2str(real_timestamp), timestamp2str(last_time)))
+    	outfile.close()
+    except Exception:
+    	outfile = open(LOG_FILE, "a")
+    	outfile.write("{} : ERROR Experiment stopped but couldn't find last measurement\n" % timestamp2str(real_timestamp))
+    	outfile.close()
+    run(real_timestamp, local_timestamp)
 
 if __name__ == '__main__':
     real_timestamp = datetime.datetime.utcfromtimestamp(getEET())
