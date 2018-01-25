@@ -3,6 +3,7 @@ from time import sleep,time
 from subprocess import Popen, PIPE
 import sys
 import datetime
+import psutil
 
 sys.path.append("../")
 from getEET import getEET
@@ -57,6 +58,11 @@ def getNetCounters():
 	tx_b = int(getCounter(TX_BYTES))
 	return rx_p, rx_b, tx_p, tx_b
 
+
+def getPsutilsStats():
+	p = psutil.Process(int(SQUID_PID))
+	return p.cpu_percent(), psutil.cpu_percent(interval=1), p.memory_percent(),  psutil.virtual_memory().percent
+
 def getCPU(pid):
 	p1 = Popen(["top","-b", "-n", "1", "-p", SQUID_PID], stdout=PIPE)
 	p2 = Popen(["grep", SQUID_PID], stdin=p1.stdout, stdout=PIPE)
@@ -91,6 +97,20 @@ def getTotalCPU():
 		totalCPU = float('.'.join(total.split(',')))
 	return squidTotal, totalCPU
 
+def getTotalRAM():
+	p = Popen(['cat', '/proc/meminfo'],stdout=PIPE)
+	output, error = p.communicate
+	output = output.split()
+	totalRAM = int(output[output.index('MemTotal:')+1])
+	freeRAM = int(output[output.index('MemTotal:')+1])
+	usedRAM = totalRAM - freeRAM
+	usageRAM = 1.*usedRAM/totalRAM
+	return totalRAM, freeRAM, usedRAM, usageRAM
+
+def getRAM():
+	p = Popen(['cat', '/proc/%s/stats' % SQUID_PID],stdout=PIPE)
+	output, error  = p.communicate()
+
 def run(real_timestamp, local_timestamp, counters):
 	r_p, r_b, t_p,t_b = counters
 	while True:
@@ -105,11 +125,12 @@ def run(real_timestamp, local_timestamp, counters):
 		r_b = rx_b
 		t_p = tx_p
 		t_b = tx_b
-		squidCPU,totalCPU = getTotalCPU()
+		#squidCPU,totalCPU = getTotalCPU()
+		squidCPU, totalCPU, squidRAM,  totalRAM = getPsutilsStats()
 		outfile = open(RESULT_FILE,"ab")
 		#Changed to support Python 2.4
-		print("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
-		outfile.write("%s,%s,%s,%s,%s,%.2f,%.2f\n" % (timestamp2epoch(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU))
+		print("%s,%s,%s,%s,%s,%.2f,%.2f,%.2f,%.2f\n" % (timestamp2str(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU, squidRAM, totalRAM))
+		outfile.write("%s,%s,%s,%s,%s,%.2f,%.2f,%.2f,%.2f\n" % (timestamp2epoch(real_now),r_p1, r_b1, t_p1, t_b1,squidCPU,totalCPU, squidRAM, totalRAM))
 		outfile.close()
 		# Update packet and byte counters
 		r_p, r_b, t_p,t_b = rx_p, rx_b, tx_p, tx_b
@@ -128,7 +149,7 @@ def boostrap(real_timestamp, local_timestamp):
     outfile.write("%s : START Experiment starting\n" % timestamp2str(real_timestamp))
     outfile.close()
     outfile = open(RESULT_FILE,"w")
-    outfile.write("timestamp,rx_packets,rx_bytes,tx_packets,tx_bytes,SquidCPU,TotalCPU\n")
+    outfile.write("timestamp,rx_packets,rx_bytes,tx_packets,tx_bytes,SquidCPU,TotalCPU,SquidRAM,TotalRAM\n")
     outfile.close()
     #r_p, r_b, t_p,t_b = getNetCounters()
     counters = getNetCounters()
