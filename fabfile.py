@@ -19,8 +19,8 @@ servers = {
 	'SERV1' : 'root@10.138.85.130',
 	'SERV2' : 'root@10.138.120.66',
 	'SERV3' : 'root@10.138.77.2'
- 
 }
+
 server_hosts = [v.split('@')[1] for v in servers.values()]
 
 servers_ifaces = {
@@ -112,6 +112,9 @@ def clients_deploy():
 		with virtualenv_clients():
 			run("pip install --upgrade pip", shell=False)
 			run("which python", shell=False)
+			# Ceate crontab file if it does not exist and assign it local user permissions
+			sudo('crontab -l -u `logname` &> /dev/null; if [ $? -gt 0 ]; then sudo touch /var/spool/cron/crontabs/`logname` ; fi', shell=False)
+			sudo('chown `logname`:`logname` /var/spool/cron/crontabs/`logname`', shell=False)
 
 
 @task
@@ -201,6 +204,16 @@ def runbg(cmd):
     run("screen -dmS TTFB && sleep 1", shell=False)
     run("screen -S TTFB -p 0 -X stuff \"%s\"$(echo -ne '\\015') && sleep 1" % cmd, shell=False)
 
+def getCron(path, cmd):
+	cd = "cd {} &&".format(path)
+	#cron = '*/10 * * * * %s %s'.format(path,cmd)
+	cron = '* * * * * {} {}'.format(cd,cmd)
+	return cron
+
+def addcrontab(path,cron_cmd):
+	cron = getCron(path, cron_cmd)
+	run('crontab -l > lastcron; echo \'{}\' >> lastcron; crontab lastcron; rm lastcron'.format(cron), shell=False)
+
 @task
 @roles('clients','servers')
 def start_experiment():
@@ -208,15 +221,18 @@ def start_experiment():
 		with cd(env.code_dir_servers):
 			command = "python monitor.py {} start".format(servers_ifaces[env.host])
 			execute(runbg,command)
+			execute(addcrontab,env.code_dir_servers,'bash check_running.sh {}'.format(servers_ifaces[env.host]))
 	elif env.host in client_hosts:
 		with virtualenv_clients():
 			command = "python requests.py start"
 			execute(runbg,command)
+			execute(addcrontab,env.code_dir_clients,'bash check_running.sh')
 
 @task
 #@parallel
 @roles('clients','servers')
 def stop_experiment():
+	run("crontab -l | grep -v \"check_running.sh\" | crontab -", shell=False)
 	with settings(warn_only=True):
 		run('screen -S TTFB -X quit', shell=False)
 
