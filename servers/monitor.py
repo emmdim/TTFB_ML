@@ -61,7 +61,7 @@ def getNetCounters():
 
 def getPsutilsStats():
 	p = psutil.Process(int(SQUID_PID))
-	return p.cpu_percent(), psutil.cpu_percent(interval=1), p.memory_percent(),  psutil.virtual_memory().percent
+	return p.cpu_percent(interval=0.7), psutil.cpu_percent(interval=0.7), p.memory_percent(),  psutil.virtual_memory().percent
 
 def getCPU(pid):
 	p1 = Popen(["top","-b", "-n", "1", "-p", SQUID_PID], stdout=PIPE)
