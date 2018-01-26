@@ -4,6 +4,9 @@ from subprocess import Popen, PIPE
 import sys
 import datetime
 import psutil
+# Using threading and not multiprocessing for compatibility with 
+import threading
+import Queue
 
 sys.path.append("../")
 from getEET import getEET
@@ -58,10 +61,29 @@ def getNetCounters():
 	tx_b = int(getCounter(TX_BYTES))
 	return rx_p, rx_b, tx_p, tx_b
 
+def pidCPUworker(proc,q):
+	q.put(proc.cpu_percent(interval=1.25))	
+	return
+
+def totalCPUworker(q):
+	 q.put(psutil.cpu_percent(interval=1.25))
+	 return
 
 def getPsutilsStats():
 	p = psutil.Process(int(SQUID_PID))
-	return p.cpu_percent(interval=0.7), psutil.cpu_percent(interval=0.7), p.memory_percent(),  psutil.virtual_memory().percent
+	q = Queue.Queue()
+	q1 = Queue.Queue()
+	p1 = threading.Thread(target=pidCPUworker,args=(p,q,))
+	p2 = threading.Thread(target=totalCPUworker,args=(q1,))
+	p1.daemon = True
+	p2.daemon = True
+	p1.start()
+	p2.start()
+	pidCPU = q.get()
+	totalCPU = q1.get()
+	p1.join()
+	p2.join()
+	return pidCPU, totalCPU, p.memory_percent(),  psutil.virtual_memory().percent
 
 def getCPU(pid):
 	p1 = Popen(["top","-b", "-n", "1", "-p", SQUID_PID], stdout=PIPE)
