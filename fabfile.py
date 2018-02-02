@@ -4,7 +4,10 @@
 from __future__ import with_statement
 from fabric.api import env, task, run, local, cd, prefix, show, roles, parallel, settings, sudo, get, execute
 from contextlib import contextmanager as _contextmanager
+from fabric.contrib.project import rsync_project
 from time import sleep
+import os, glob
+import datetime as dt
 
 
 clients = {
@@ -16,9 +19,9 @@ clients = {
 client_hosts = [v.split('@')[1] for v in clients.values()]
 
 servers = {
-	'SERV1' : 'root@10.138.85.130',
-	'SERV2' : 'root@10.138.120.66',
-	'SERV3' : 'root@10.138.77.2'
+	'SERV1' : 'root@10.138.85.130', #AjntSrv
+	'SERV2' : 'root@10.138.120.66', #proxy
+	'SERV3' : 'root@10.138.77.2' #PratsAjntSrv1
 }
 
 server_hosts = [v.split('@')[1] for v in servers.values()]
@@ -29,8 +32,6 @@ servers_ifaces = {
 	'10.138.77.2' : 'eth3'
 
 }
-
-import os
 
 env.shell = "/bin/bash"
 env.virtualenv = os.path.join(os.getcwd(),'venv')
@@ -90,8 +91,11 @@ def clients_deploy():
 	with show('debug'):
 		# Create experiment directory if not exists
 		sudo('apt-get update', shell=False)
-		# Because of error that curl was not installed when cloning
-		sudo('apt-get install -y curl python-pip git screen', shell=False)
+		# Install necessary packages, psutil is not available for Python 2.4 
+		# and thus needs to be install and compiled manually
+		# Moreover in systems older than jessie psutil should be installed by 
+		# pip since the apt version is extremely old
+		sudo('apt-get install -y curl python-pip git screen psutil rsync', shell=False)
 		# Create experiment directory if not exists
 		with settings(warn_only=True):
 			if (run("test -d %s" % '/home/khulan/ttfb', shell=False).return_code) == 1:
@@ -125,9 +129,8 @@ def servers_deploy():
 		# Create experiment directory if not exists
 		run('apt-get update', shell=False)
 		# Because of error that curl was not installed when cloning
-		run('apt-get install -y curl', shell=False)
 		# Because of confusion between git and git-fm for olde debian versions
-		run('apt-get install -y git-core screen', shell=False)
+		run('apt-get install -y curl git-core screen rsync', shell=False)
 		with settings(warn_only=True):
 			if (run("test -d %s" % '/root/ttfb', shell=False).return_code) == 1:
 				print 'Creating working directory'
@@ -246,13 +249,9 @@ def check_experiment():
 @roles('clients','servers')
 def get_results():
 	if env.host in client_hosts:
-		with cd(env.code_dir_clients):
-			with settings(warn_only=True):
-				get('results/results*','clients/results/')
+		rsync_project(remote_dir=env.code_dir_clients+'results/',local_dir='./clients/results/',exclude=['log*','.*'],upload=False)
 	elif env.host in server_hosts:
-		with cd(env.code_dir_servers):
-			with settings(warn_only=True):
-				get('results/results*','servers/results/')
+		rsync_project(remote_dir=env.code_dir_servers+'results/',local_dir='./servers/results/',exclude=['log*','.*'],upload=False)
 	else:
 		print 'Nothing'
 
@@ -260,12 +259,31 @@ def get_results():
 @roles('clients','servers')
 def get_logs():
 	if env.host in client_hosts:
-		with cd(env.code_dir_clients):
-			with settings(warn_only=True):
-				get('results/log*','clients/results/')
+		rsync_project(remote_dir=env.code_dir_clients+'results/',local_dir='./clients/results/',exclude=['result*','.*'],upload=False)
 	elif env.host in server_hosts:
-		with cd(env.code_dir_servers):
-			with settings(warn_only=True):
-				get('results/log*','servers/results/')
+		rsync_project(remote_dir=env.code_dir_servers+'results/',local_dir='./servers/results/',exclude=['result*','.*'],upload=False)
 	else:
 		print 'Nothing'
+
+@task
+def check_last_results():
+	#execute(get_results)
+	for directory in ['clients','servers']:
+		files = glob.glob('{}/results/results*'.format(directory))
+		for fil in files:
+			with open(fil,'r') as f:
+				lines = list(f)
+				last_timestamp = lines[-1].split(',')[0]
+				print '{}: \tLines: {}\tLast Measurement: {}'.format(fil, len(lines), dt.datetime.fromtimestamp(float(last_timestamp)))
+
+@task
+def check_logs():
+	execute(get_logs)
+	for directory in ['clients','servers']:
+		files = glob.glob('{}/results/log*'.format(directory))
+		for fil in files:
+			print "FILE: {}".format(fil)
+			with open(fil,'r') as f:
+				for line in list(f):
+					print '\t {}'.format(line)
+			print '\n\n'
