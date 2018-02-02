@@ -18,8 +18,10 @@ DURING THE FOLLOWING STEP SUDO ACTIONS WILL PROMPT FOR PASSWORDS
 
 Copy your private key to the TTFB_ML folder name as `key` and your public key in the same place named as key.pub
 
-Configure the clients addresses in the `clients` variable inside the fabfile.py. The addresses need to be in the format `user@ip`
+Configure the clients addresses in the `clients` variable inside the `fabfile.py`. The addresses need to be in the format `user@ip`
 The same needs to be done for the `servers`
+
+Add the necessary entries to `ssh-config` for each used client and server.
 
 Install your public key to the clients executing:
 ```
