@@ -21,7 +21,7 @@ PROXIES = {
 HOSTNAME = Popen(['hostname'], stdout=PIPE).communicate()[0].strip()
 RESULT_FILE = "results/results_ping_client_%s" % HOSTNAME
 
-CMD =  'ping -c 10'
+CMD =  'ping -c 30'
 
 #print("Proxy,Hops,Min,Avg,Max,Mdev")
 with open(RESULT_FILE, "w") as fil:
