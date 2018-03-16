@@ -38,8 +38,7 @@ PROXIES = {
     9 : '10.138.71.3',#8258-elpipa Centelles
     10 : '10.34.100.145', #Girona 17732-ProxySGElectronics1
     11 : '10.155.1.101',# 47181-BisbProxy Baix Emporda
-    12 : '10.155.7.3', # 	23164-PALF-ProxyTorretes50 Palafrugell
-    #15 :
+    #12 : '10.155.7.3', # 	23164-PALF-ProxyTorretes50 Palafrugell
 
 }
 
