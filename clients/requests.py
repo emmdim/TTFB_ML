@@ -4,12 +4,12 @@
 #
 #SERVERS AND CLIENTS TIME SYNCHRONIZATION
 #Two timestamps are used. The real timestamp is for reporting.
-#In order to make only 1 http request to get the real timestamp the 
-#timedelta from the beggining of the experiment to now is measured 
+#In order to make only 1 http request to get the real timestamp the
+#timedelta from the beggining of the experiment to now is measured
 #using the local_timestamp
 #NODES AGREEMENT (for example PROXY SELECTION)
-#In case of the neceissty of for the agreement on any issue 
-#between the nodes the time can be used. Commented inside the run 
+#In case of the neceissty of for the agreement on any issue
+#between the nodes the time can be used. Commented inside the run
 #function are parts of the code that would make the clients to agree
 #on a common proxy every 10 minutes.
 
@@ -26,9 +26,13 @@ USER = 'david.pinilla'
 PASS = r'|Jn 5DJ\\7inbNniK|m@^ja&>C'
 
 PROXIES = {
-    0 : '10.138.85.130',
-    1 : '10.138.120.66',
-    2 : '10.138.77.2',
+    0 : '10.139.40.85',
+    1 : '10.139.40.122',
+    2 : '10.138.57.2',
+    3 : '10.138.85.130',
+    4 : '10.139.17.4',
+    5 : '10.139.37.194',
+    6 : '10.138.25.67',
 }
 
 URL = "http://ovh.net/files/1Mb.dat"
@@ -52,12 +56,12 @@ def timestamp2epoch(timestamp):
     return (timestamp - datetime.datetime(1970,1,1)).total_seconds()
 
 def run(real_timestamp, local_timestamp):
-    """ Makes every INTERVAL parallel http requests using all the 
+    """ Makes every INTERVAL parallel http requests using all the
         available proxies.
         First measurement is in random timestamp. The rest happen
         at every 0,10,20 etc. seconds
     """
-    ## In case we want the proxy is selected depending on the 
+    ## In case we want the proxy is selected depending on the
     ##10ths of minutes of the time
     ##now = datetime.datetime.now()
     ##proxy_id  = (real_timestamp.minute/10)  % 3
@@ -67,7 +71,7 @@ def run(real_timestamp, local_timestamp):
         local_now = datetime.datetime.now()
         real_now = real_timestamp + (local_now - local_timestamp)
         processes = {proxy:Popen(shlex.split(get_cmd(proxy)), stdout=PIPE, stderr=PIPE) for i,proxy in PROXIES.iteritems()}
-        for proxy,p in processes.iteritems(): 
+        for proxy,p in processes.iteritems():
             out1, err = p.communicate()
             out1 = out1.split(',')
             # Different implmentations of curl
@@ -135,4 +139,3 @@ if __name__ == '__main__':
     else:
         with open(LOG_FILE, "a") as fil:
             fil.write("{} : Command run without argument\n".format(timestamp2str(real_timestamp)))
-
