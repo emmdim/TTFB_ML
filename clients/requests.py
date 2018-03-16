@@ -39,6 +39,9 @@ PROXIES = {
     10 : '10.34.100.145', #Girona 17732-ProxySGElectronics1
     11 : '10.155.1.101',# 47181-BisbProxy Baix Emporda
     #12 : '10.155.7.3', # 	23164-PALF-ProxyTorretes50 Palafrugell
+    12 : '10.91.122.66',# 67873-CRD10FN01-Proxy Cardedeu
+    13 : '10.228.12.2', # 	31050-SLLProxy sallent
+    14 : '10.140.93.66', # 	66664-Tascons4-Proxy Estartit
 
 }
 
