@@ -40,8 +40,8 @@ PROXIES = {
     11 : '10.155.1.101',# 47181-BisbProxy Baix Emporda
     12 : '10.138.73.3', #	8257-SFLLProxy Baix Llobregat
     13 : '10.139.26.66', # 28170-Ripoll-SrverProxyEle
-    14 : '10.155.7.3'. # 	23164-PALF-ProxyTorretes50 Palafrugell
-    #15 : 
+    14 : '10.155.7.3', # 	23164-PALF-ProxyTorretes50 Palafrugell
+    #15 :
 
 }
 
