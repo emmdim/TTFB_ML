@@ -33,6 +33,16 @@ PROXIES = {
     4 : '10.139.17.4',
     5 : '10.139.37.194',
     6 : '10.138.25.67',
+    7 : '10.228.192.210', # BCNRossello208 36508
+    8 : '10.139.38.2', #13953-knoppix.guifi.net 13953 Olot
+    9 : '10.138.71.3',#8258-elpipa Centelles
+    10 : '10.34.100.145', #Girona 17732-ProxySGElectronics1
+    11 : '10.155.1.101',# 47181-BisbProxy Baix Emporda
+    12 : '10.138.73.3', #	8257-SFLLProxy Baix Llobregat
+    13 : '10.139.26.66', # 28170-Ripoll-SrverProxyEle
+    14 : '10.155.7.3'. # 	23164-PALF-ProxyTorretes50 Palafrugell
+    #15 : 
+
 }
 
 URL = "http://ovh.net/files/1Mb.dat"
