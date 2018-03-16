@@ -40,7 +40,6 @@ env.activate = '. %(virtualenv)s/bin/activate' % env
 env.code_dir = os.getcwd()
 env.roledefs = {
     'clients': [ip for name, ip in clients.iteritems()],
-    'servers': [ip for name, ip in servers.iteritems()]
 }
 env.use_ssh_config = True
 env.ssh_config_path = "ssh_config"
@@ -50,9 +49,6 @@ env.code_dir_clients = '/home/khulan/ttfb-client/TTFB_ML/clients/'
 env.virtualenv_clients = 'venv'
 env.activate_clients = '. %(virtualenv_clients)s/bin/activate' % env
 
-env.code_dir_servers = '/root/ttfb/TTFB_ML/servers/'
-env.virtualenv_servers = 'venv'
-env.activate_servers = '. %(virtualenv_servers)s/bin/activate' % env
 
 PUB_KEY = "key.pub"
 
@@ -66,12 +62,6 @@ def virtualenv():
 @_contextmanager
 def virtualenv_clients():
     with cd(env.virtualenv_clients), prefix(env.activate_clients), cd(env.code_dir_clients):
-        yield
-
-
-@_contextmanager
-def virtualenv_servers():
-    with cd(env.virtualenv_servers), prefix(env.activate_servers), cd(env.code_dir_servers):
         yield
 
 
@@ -96,11 +86,8 @@ def clients_deploy():
     with show('debug'):
         # Create experiment directory if not exists
         sudo('apt-get update', shell=False)
-        # Install necessary packages, psutil is not available for Python 2.4
-        # and thus needs to be install and compiled manually
-        # Moreover in systems older than jessie psutil should be installed by
-        # pip since the apt version is extremely old
-        sudo('apt-get install -y curl python-pip git screen psutil rsync', shell=False)
+        # Install necessary packages,
+        sudo('apt-get install -y curl python-pip git screen rsync', shell=False)
         # Create experiment directory if not exists
         with settings(warn_only=True):
             if (run("test -d %s" % '/home/khulan/ttfb-client', shell=False).return_code) == 1:
@@ -129,32 +116,6 @@ def clients_deploy():
 
 
 @task
-@roles('servers')
-def servers_deploy():
-    # Skipping virtualenv because of complication from different server OS versios etc.
-    with show('debug'):
-        # Create experiment directory if not exists
-        run('apt-get update', shell=False)
-        # Because of error that curl was not installed when cloning
-        # Because of confusion between git and git-fm for olde debian versions
-        run('apt-get install -y curl git-core screen rsync', shell=False)
-        with settings(warn_only=True):
-            if (run("test -d %s" % '/root/ttfb', shell=False).return_code) == 1:
-                print 'Creating working directory'
-                run("mkdir %s" % '/root/ttfb', shell=False)
-        with cd('/root/ttfb'):
-            with settings(warn_only=True):
-                if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
-                    print 'Cloning repository'
-                    # Using git in the url since HTTP does not work for older versions of git
-                    run("git clone git://github.com/emmdim/TTFB_ML.git", shell=False)
-        # Not using env.code_dir_clients cause olde git versions do not pull when in subfolder
-        with cd('/root/ttfb/TTFB_ML'):
-            run("git pull", shell=False)
-            run("ls", shell=False)
-
-
-@task
 @parallel
 @roles('clients')
 def clients_pull():
@@ -163,13 +124,6 @@ def clients_pull():
             run("git pull", shell=False)
 
 
-@task
-@parallel
-@roles('servers')
-def servers_pull():
-    with show('debug'):
-        with cd('/root/ttfb/TTFB_ML'):
-            run("git pull", shell=False)
 
 
 @task
@@ -180,14 +134,6 @@ def clients_test():
         run("python requests.py start", shell=False)
 
 
-@task
-@parallel
-@roles('servers')
-def servers_test():
-    print env.host
-    with cd(env.code_dir_servers):
-        run("python monitor.py {} start".format(
-            servers_ifaces[env.host]), shell=False)
 
 
 @task
@@ -237,16 +183,9 @@ def addcrontab(path, cron_cmd):
 
 
 @task
-@roles('clients', 'servers')
+@roles('clients')
 def start_experiment():
-    if env.host in server_hosts:
-        with cd(env.code_dir_servers):
-            command = "python monitor.py {} start".format(
-                servers_ifaces[env.host])
-            execute(runbg, command)
-            execute(addcrontab, env.code_dir_servers,
-                    'bash check_running.sh {}'.format(servers_ifaces[env.host]))
-    elif env.host in client_hosts:
+    if env.host in client_hosts:
         with virtualenv_clients():
             command = "python requests.py start"
             execute(runbg, command)
@@ -255,7 +194,7 @@ def start_experiment():
 
 @task
 #@parallel
-@roles('clients', 'servers')
+@roles('clients')
 def stop_experiment():
     run("crontab -l | grep -v \"check_running.sh\" | crontab -", shell=False)
     with settings(warn_only=True):
@@ -263,34 +202,27 @@ def stop_experiment():
 
 
 @task
-@roles('clients', 'servers')
+@roles('clients')
 def check_experiment():
     with settings(warn_only=True):
         run('screen -ls', shell=False)
 
 
 @task
-@roles('clients', 'servers')
+@roles('clients')
 def get_results():
     if env.host in client_hosts:
         rsync_project(remote_dir=env.code_dir_clients + 'results/',
                       local_dir='./clients/results/', exclude=['log*', '.*'], upload=False)
-    elif env.host in server_hosts:
-        rsync_project(remote_dir=env.code_dir_servers + 'results/',
-                      local_dir='./servers/results/', exclude=['log*', '.*'], upload=False)
-    else:
         print 'Nothing'
 
 
 @task
-@roles('clients', 'servers')
+@roles('clients')
 def get_logs():
     if env.host in client_hosts:
         rsync_project(remote_dir=env.code_dir_clients + 'results/',
                       local_dir='./clients/results/', exclude=['result*', '.*'], upload=False)
-    elif env.host in server_hosts:
-        rsync_project(remote_dir=env.code_dir_servers + 'results/',
-                      local_dir='./servers/results/', exclude=['result*', '.*'], upload=False)
     else:
         print 'Nothing'
 
@@ -298,7 +230,7 @@ def get_logs():
 @task
 def check_last_results():
     # execute(get_results)
-    for directory in ['clients', 'servers']:
+    for directory in ['clients']:
         files = glob.glob('{}/results/results*'.format(directory))
         for fil in files:
             with open(fil, 'r') as f:
@@ -311,7 +243,7 @@ def check_last_results():
 @task
 def check_logs():
     execute(get_logs)
-    for directory in ['clients', 'servers']:
+    for directory in ['clients']:
         files = glob.glob('{}/results/log*'.format(directory))
         for fil in files:
             print "FILE: {}".format(fil)
