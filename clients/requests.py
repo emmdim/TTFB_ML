@@ -26,7 +26,8 @@ USER = 'david.pinilla'
 PASS = r'|Jn 5DJ\\7inbNniK|m@^ja&>C'
 
 PROXIES = {
-    0 : '10.139.40.85',
+#    0 : '10.139.40.85',
+    0 : '10.228.12.2', # 	31050-SLLProxy sallent
     1 : '10.139.40.122',
     2 : '10.138.57.2',
     3 : '10.138.85.130',
@@ -40,8 +41,8 @@ PROXIES = {
     11 : '10.155.1.101',# 47181-BisbProxy Baix Emporda
     #12 : '10.155.7.3', # 	23164-PALF-ProxyTorretes50 Palafrugell
     12 : '10.91.122.66',# 67873-CRD10FN01-Proxy Cardedeu
-    13 : '10.228.12.2', # 	31050-SLLProxy sallent
-    14 : '10.140.93.66', # 	66664-Tascons4-Proxy Estartit
+
+#    14 : '10.140.93.66', # 	66664-Tascons4-Proxy Estartit
 
 }
 
