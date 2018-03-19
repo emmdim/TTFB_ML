@@ -36,7 +36,7 @@ for i,proxy in PROXIES.iteritems():
     p = Popen(shlex.split(getCmd(proxy)), stdout=PIPE, stderr=PIPE)
     out1, err = p.communicate()
     out1 = out1.strip().split('\n')
-    hops = 64 - int(out1[1].split(':')[1].split(' ')[2].split('=')[1])
+    hops = 64 - int(out1[1].split(':')[1].split(' ')[2].split('=')[1]) + 1
     stats = out1[-1].split('=')[1].split('/')
     stats = map(lambda x: x.strip(), stats)
     stats[-1] = stats[-1].split(' ')[0]
