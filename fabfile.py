@@ -165,8 +165,8 @@ def clients_upload_pubkey(pubkey_file=PUB_KEY):
 
 
 def runbg(cmd):
-    run("screen -dmS TTFB && sleep 1", shell=False)
-    run("screen -S TTFB -p 0 -X stuff \"%s\"$(echo -ne '\\015') && sleep 1" %
+    run("screen -dmS TTFBclients && sleep 1", shell=False)
+    run("screen -S TTFBclients -p 0 -X stuff \"%s\"$(echo -ne '\\015') && sleep 1" %
         cmd, shell=False)
 
 
@@ -198,7 +198,7 @@ def start_experiment():
 def stop_experiment():
     run("crontab -l | grep -v \"check_running.sh\" | crontab -", shell=False)
     with settings(warn_only=True):
-        run('screen -S TTFB -X quit', shell=False)
+        run('screen -S TTFBclients -X quit', shell=False)
 
 
 @task
@@ -206,6 +206,13 @@ def stop_experiment():
 def check_experiment():
     with settings(warn_only=True):
         run('screen -ls', shell=False)
+
+@task
+@roles('clients')
+def do_pings():
+	with settings(warn_only=True):
+		with virtualenv_clients():
+			run('python ping.py', shell=False)
 
 
 @task
@@ -229,7 +236,7 @@ def get_logs():
 
 @task
 def check_last_results():
-    # execute(get_results)
+    execute(get_results)
     for directory in ['clients']:
         files = glob.glob('{}/results/results*'.format(directory))
         for fil in files:
