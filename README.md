@@ -7,6 +7,10 @@ TTFB Measurements in guifi.net
 ```
 $pip install virtualenv
 $git clone https://github.com/emmdim/TTFB_ML.git && cd TTFB_ML
+
+## Or if you want a local branch like the client_side one
+## git clone -b client_side https://github.com/emmdim/TTFB_ML.git && cd TTFB_ML
+
 $virtualenv venv
 $source venv/bin/activate
 $pip install --upgrade pip
