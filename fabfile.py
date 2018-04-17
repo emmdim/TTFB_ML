@@ -11,6 +11,10 @@ import glob
 import datetime as dt
 
 
+USER_DIR = '/home/khulan/'
+PROJECT_NAME = 'roc-test'
+
+
 clients = {
     'SEG_1': 'khulan@10.228.207.65',
     'SEG_2': 'khulan@10.228.207.66',
@@ -45,7 +49,9 @@ env.use_ssh_config = True
 env.ssh_config_path = "ssh_config"
 env.sudo_prefix = "sudo "
 
-env.code_dir_clients = '/home/khulan/ttfb-client/TTFB_ML/clients/'
+
+env.base_dir = USER_DIR + PROJECT_NAME
+env.code_dir_clients = env.base_dir + '/TTFB_ML/clients/'
 env.virtualenv_clients = 'venv'
 env.activate_clients = '. %(virtualenv_clients)s/bin/activate' % env
 
@@ -90,10 +96,10 @@ def clients_deploy():
         sudo('apt-get install -y curl python-pip git screen rsync', shell=False)
         # Create experiment directory if not exists
         with settings(warn_only=True):
-            if (run("test -d %s" % '/home/khulan/ttfb-client', shell=False).return_code) == 1:
+            if (run("test -d %s" % env.base_dir, shell=False).return_code) == 1:
                 print 'Creating working directory'
-                run("mkdir %s" % '/home/khulan/ttfb-client', shell=False)
-        with cd('/home/khulan/ttfb-client'):
+                run("mkdir %s" % env.base_dir, shell=False)
+        with cd(env.base_dir):
             run("sudo pip install virtualenv", shell=False)
             with settings(warn_only=True):
                 if (run("test -d %s" % 'TTFB_ML', shell=False).return_code) == 1:
@@ -148,19 +154,19 @@ def clients_upload_pubkey(pubkey_file=PUB_KEY):
     with show('debug'):
         with settings(use_ssh_config=False, user='khulan'):
             with settings(warn_only=True):
-                if (run("test -d %s" % '/home/khulan/.ssh', shell=False).return_code) == 1:
+                if (run("test -d %s" % USER_DIR+'.ssh', shell=False).return_code) == 1:
                     print 'Creating .ssh directory'
-                    run("mkdir %s" % '/home/khulan/.ssh', shell=False)
+                    run("mkdir %s" % USER_DIR+'.ssh', shell=False)
                 run("chmod 700 /home/khulan/.ssh", shell=False)
-                if (run("test -d %s" % '/home/khulan/.ssh/authorized_keys', shell=False).return_code) == 1:
+                if (run("test -d %s.ssh/authorized_keys" % USER_DIR, shell=False).return_code) == 1:
                     print 'Creating authorized_keys'
-                    run("touch %s" %
-                        '/home/khulan/.ssh/authorized_keys', shell=False)
-                run("chmod 600 /home/khulan/.ssh/authorized_keys", shell=False)
+                    run("touch %s.ssh/authorized_keys" %
+                        USER_DIR, shell=False)
+                run("chmod 600 %s.ssh/authorized_keys" % USER_DIR, shell=False)
             with open(os.path.expanduser(pubkey_file)) as fd:
                 ssh_key = fd.readline().strip()
-                run("echo '%s' >> %s" %
-                    (ssh_key, '/home/khulan/.ssh/authorized_keys'), shell=False)
+                run("echo '%s' >> %s.ssh/authorized_keys" %
+                    (ssh_key, USER_DIR), shell=False)
                 #files.append('/home/khulan/.ssh/authorized_keys', ssh_key, shell=False)
 
 
